@@ -17,7 +17,7 @@ import javax.net.ssl.ManagerFactoryParameters;
  * @author ahonore
  *
  */
-public class VRKeyManagerSpi extends KeyManagerFactorySpi
+public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 {
 
     @Override
