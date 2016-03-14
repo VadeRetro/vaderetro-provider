@@ -3,62 +3,78 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
+
+import org.apache.log4j.Logger;
 
 /**
  * @author ahonore
  *
  */
-public final class VRKeyStoreDAOFactory
+public abstract class VRKeyStoreDAOFactory
 {
-    private static final String DAO_FACTORY_CLASS_ENV = "com.vaderetro.security.keystore.dao.factory";
-    private static final String DAO_FACTORY_PROPERTIES_FILE_ENV = "com.vaderetro.security.keystore.dao.properties";
-    private static final Properties DEFAULT_PROPERTIES;
-    static
-    {
-        DEFAULT_PROPERTIES = new Properties();
-        DEFAULT_PROPERTIES.setProperty(DAO_FACTORY_CLASS_ENV, "sql factory impl class");
-        DEFAULT_PROPERTIES.setProperty(DAO_FACTORY_PROPERTIES_FILE_ENV, "com.vaderetro.security.keystore.dao.properties");
-    }
+    private final static Logger LOG = Logger.getLogger(VRKeyStoreDAOFactory.class);
+
+    public static final String DAO_FACTORY_CLASS_PROPERTY_NAME = "com.vaderetrosecure.keystore.dao.factory";
     
+    private static final String DAO_FACTORY_PROPERTIES_FILE_ENV_NAME = "com.vaderetrosecure.keystore.dao.properties";
     private static VRKeyStoreDAOFactory INSTANCE = null;
-    
-    private Properties properties;
     
     private VRKeyStoreDAOFactory()
     {
-        properties = new Properties(DEFAULT_PROPERTIES);
-        String value = System.getenv(DAO_FACTORY_CLASS_ENV);
-        if (value != null)
-            properties.setProperty(DAO_FACTORY_CLASS_ENV, value);
-        value = System.getenv(DAO_FACTORY_PROPERTIES_FILE_ENV);
-        if (value != null)
-            properties.setProperty(DAO_FACTORY_PROPERTIES_FILE_ENV, value);
     }
     
-    public static VRKeyStoreDAOFactory getInstance()
+    public static VRKeyStoreDAOFactory getInstance() throws VRKeyStoreDAOException
     {
-        if (INSTANCE == null)
-            INSTANCE = new VRKeyStoreDAOFactory();
+        if (INSTANCE != null)
+            return INSTANCE;
+        
+        // create instance of factory
+        String factoryClassStr = System.getProperty(DAO_FACTORY_CLASS_PROPERTY_NAME, "com.vaderetrosecure.keystore.dao.VRKeyStoreDAOFactoryItf");
+        if (factoryClassStr == null)
+            throw new VRKeyStoreDAOException("system property '" + DAO_FACTORY_CLASS_PROPERTY_NAME + "' not set");
+
+        VRKeyStoreDAOFactory factory = null;
+        try
+        {
+            @SuppressWarnings("unchecked")
+            Class<VRKeyStoreDAOFactory> cl = (Class<VRKeyStoreDAOFactory>) Class.forName(factoryClassStr);
+            factory = cl.newInstance();
+            Properties prop = loadProperties();
+            factory.init(prop);
+        }
+        catch (ClassNotFoundException | InstantiationException | IllegalAccessException e)
+        {
+            LOG.fatal(e, e);
+            throw new VRKeyStoreDAOException(e);
+        }
+        
+        INSTANCE = factory;
         return INSTANCE;
     }
     
-    public void init() throws VRKeyStoreDAOException
+    private static Properties loadProperties() throws VRKeyStoreDAOException
     {
-        // create instance of factory
-        
         //  loading properties file
-        
-        // call init factory with properties
+        String propFile = System.getProperty(DAO_FACTORY_PROPERTIES_FILE_ENV_NAME, "com.vaderetrosecure.keystore.dao.properties");
+        Properties prop = new Properties();
+        try (InputStream is = ClassLoader.getSystemResourceAsStream(propFile))
+        {
+            if (is == null)
+                throw new VRKeyStoreDAOException("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_ENV_NAME + "' file");
+            prop.load(is);
+            return prop;
+        }
+        catch (IOException e)
+        {
+            LOG.fatal(e, e);
+            throw new VRKeyStoreDAOException(e);
+        }
     }
     
-    public VRKeyStoreDAO getKeyStoreDAO() throws VRKeyStoreDAOException
-    {
-        return null;
-    }
+    protected abstract void init(Properties properties) throws VRKeyStoreDAOException;
     
-    public void uninit() throws VRKeyStoreDAOException
-    {
-        
-    }
+    public abstract VRKeyStoreDAO getKeyStoreDAO() throws VRKeyStoreDAOException;
 }

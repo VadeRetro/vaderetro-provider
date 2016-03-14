@@ -16,8 +16,8 @@ public class VRKeyStoreDAOException extends Exception
         super(message, null);
     }
 
-    public VRKeyStoreDAOException(String message, Throwable cause)
+    public VRKeyStoreDAOException(Throwable cause)
     {
-        super(message, cause);
+        super(cause);
     }
 }

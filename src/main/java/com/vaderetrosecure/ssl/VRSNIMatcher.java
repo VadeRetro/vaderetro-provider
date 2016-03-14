@@ -13,7 +13,7 @@ import com.vaderetrosecure.VRKeyStorageDAO;
  * @author ahonore
  *
  */
-public class VRSNIMatcher extends SNIMatcher
+class VRSNIMatcher extends SNIMatcher
 {
     private final VRKeyStorageDAO keyStorageDAO;
 

@@ -6,10 +6,8 @@ package com.vaderetrosecure;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.Provider;
-import java.security.Security;
 
-import org.apache.log4j.Logger;
-
+import com.vaderetrosecure.ssl.VRKeyManagerSpi;
 import com.vaderetrosecure.ssl.VRSSLContextSpi;
 
 /**
@@ -36,6 +34,7 @@ public class VadeRetroProvider extends Provider
             {
                 put("KeyStore.VR", FileKeystore.class.getName());
                 put("SSLContext.TLS", VRSSLContextSpi.class.getName());
+                put("KeyManagerFactory.VR", VRKeyManagerSpi.class.getName());
                 return null;
             }
         });

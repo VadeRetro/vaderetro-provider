@@ -8,6 +8,7 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 
@@ -26,6 +27,7 @@ public class VRX509KeyManager extends X509ExtendedKeyManager
 
     private final VRKeyStorageDAO keyStorage;
     private VRSNIMatcher sniMatcher;
+    private KeyManager keyManager;
     
     public VRX509KeyManager(VRKeyStorageDAO keyStorage)
     {

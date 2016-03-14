@@ -15,6 +15,16 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
+
+import javax.crypto.Cipher;
+
+import org.apache.log4j.Logger;
+
+import com.vaderetrosecure.keystore.dao.IntegrityData;
+import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOFactory;
 
 /**
  * @author ahonore
@@ -22,14 +32,26 @@ import java.util.Enumeration;
  */
 public class VRKeystoreSpi extends KeyStoreSpi
 {
+    private final static Logger LOG = Logger.getLogger(VRKeystoreSpi.class);
+
+    private VRKeyStoreDAO keystoreDAO;
+    private Cipher masterCipher;
+    private Cipher masterDecipher;
+    
     public VRKeystoreSpi()
     {
-        
-    }
-
-    public void setKeysDAO()
-    {
-        
+        keystoreDAO = null;
+        masterCipher = null;
+        masterDecipher = null;
+        try
+        {
+            VRKeyStoreDAOFactory ksFactory = VRKeyStoreDAOFactory.getInstance();
+            keystoreDAO = ksFactory.getKeyStoreDAO();
+        }
+        catch (VRKeyStoreDAOException e)
+        {
+            LOG.fatal(e, e);
+        }
     }
     
     @Override
@@ -42,8 +64,11 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public Certificate[] engineGetCertificateChain(String alias)
     {
-        // TODO Auto-generated method stub
-        return null;
+        List<Certificate> certChain = keystoreDAO.getCertificateChain(alias);
+        if (certChain.isEmpty())
+            return null;
+        
+        return certChain.toArray(new Certificate[]{});
     }
 
     @Override
@@ -126,22 +151,33 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public String engineGetCertificateAlias(Certificate cert)
     {
-        // TODO Auto-generated method stub
+        LOG.warn("engineGetCertificateAlias: not yet implemented");
         return null;
     }
 
     @Override
     public void engineStore(OutputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException
     {
-        // TODO Auto-generated method stub
-        
+        LOG.warn("engineStore: does nothing");
     }
 
     @Override
     public void engineLoad(InputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException
     {
-        // TODO Auto-generated method stub
+        if (!checkKeyStoreDAOIsLoaded())
+        {
+            final String errorMsg = "keystore dao is not loaded";
+            LOG.fatal(errorMsg);
+            throw new IOException(errorMsg);
+        }
         
+        IntegrityData integrityData = keystoreDAO.getIntegrityData();
+        integrityData.checkIntegrity();
     }
 
+    
+    private boolean checkKeyStoreDAOIsLoaded()
+    {
+        return keystoreDAO != null;
+    }
 }
