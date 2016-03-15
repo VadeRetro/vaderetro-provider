@@ -42,14 +42,14 @@ public class VRKeystoreSpi extends KeyStoreSpi
     private final static Logger LOG = Logger.getLogger(VRKeystoreSpi.class);
 
     private VRKeyStoreDAO keystoreDAO;
-    private Cipher masterCipher;
-    private Cipher masterDecipher;
+//    private Cipher masterCipher;
+//    private Cipher masterDecipher;
     
     public VRKeystoreSpi()
     {
         keystoreDAO = null;
-        masterCipher = null;
-        masterDecipher = null;
+//        masterCipher = null;
+//        masterDecipher = null;
         try
         {
             VRKeyStoreDAOFactory ksFactory = VRKeyStoreDAOFactory.getInstance();
@@ -71,31 +71,43 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public Certificate[] engineGetCertificateChain(String alias)
     {
-        if (!checkKeyStoreDAOIsLoaded())
+        try
         {
-            return null;
-        }
+			checkKeyStoreDAOIsLoaded();
 
-        List<Certificate> certChain = getListOfCertificates(alias);
-        if (certChain.isEmpty())
-            return null;
+	        List<Certificate> certChain = getListOfCertificates(alias);
+	        if (certChain.isEmpty())
+	            return null;
+	        
+	        return certChain.toArray(new Certificate[]{});
+		}
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
         
-        return certChain.toArray(new Certificate[]{});
+        return null;
     }
 
     @Override
     public Certificate engineGetCertificate(String alias)
     {
-        if (!checkKeyStoreDAOIsLoaded())
+        try
         {
-            return null;
-        }
+			checkKeyStoreDAOIsLoaded();
 
-        List<Certificate> certChain = getListOfCertificates(alias);
-        if (certChain.isEmpty())
-            return null;
-        
-        return certChain.get(0);
+			List<Certificate> certChain = getListOfCertificates(alias);
+	        if (certChain.isEmpty())
+	            return null;
+	        
+	        return certChain.get(0);
+		}
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
+
+        return null;
     }
 
     private List<Certificate> getListOfCertificates(String alias)
@@ -134,14 +146,11 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public Date engineGetCreationDate(String alias)
     {
-        if (!checkKeyStoreDAOIsLoaded())
-        {
-            return null;
-        }
-
         try
         {
-            List<KeyStoreEntry> entries = keystoreDAO.getKeyStoreEntry(alias);
+			checkKeyStoreDAOIsLoaded();
+
+			List<KeyStoreEntry> entries = keystoreDAO.getKeyStoreEntry(alias);
             if (entries.isEmpty())
                 return null;
             
@@ -151,6 +160,10 @@ public class VRKeystoreSpi extends KeyStoreSpi
         {
             LOG.error(e, e);
         }
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
         
         return null;
     }
@@ -186,14 +199,11 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public Enumeration<String> engineAliases()
     {
-        if (!checkKeyStoreDAOIsLoaded())
-        {
-            return Collections.emptyEnumeration();
-        }
-
         try
         {
-            List<String> aliases = keystoreDAO.getAliases();
+			checkKeyStoreDAOIsLoaded();
+
+			List<String> aliases = keystoreDAO.getAliases();
             if (aliases.isEmpty())
                 return Collections.emptyEnumeration();
             
@@ -203,6 +213,10 @@ public class VRKeystoreSpi extends KeyStoreSpi
         {
             LOG.error(e, e);
         }
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
 
         return Collections.emptyEnumeration();
     }
@@ -210,19 +224,20 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public boolean engineContainsAlias(String alias)
     {
-        if (!checkKeyStoreDAOIsLoaded())
-        {
-            return false;
-        }
-
         try
         {
-            return !keystoreDAO.getKeyStoreEntry(alias).isEmpty();
+			checkKeyStoreDAOIsLoaded();
+
+			return !keystoreDAO.getKeyStoreEntry(alias).isEmpty();
         }
         catch (VRKeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
 
         return false;
     }
@@ -230,19 +245,20 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public int engineSize()
     {
-        if (!checkKeyStoreDAOIsLoaded())
-        {
-            return 0;
-        }
-
         try
         {
-            return keystoreDAO.countEntries();
+			checkKeyStoreDAOIsLoaded();
+
+			return keystoreDAO.countEntries();
         }
         catch (VRKeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
 
         return 0;
     }
@@ -250,14 +266,44 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public boolean engineIsKeyEntry(String alias)
     {
-        // TODO Auto-generated method stub
+        try
+        {
+			checkKeyStoreDAOIsLoaded();
+			
+            return !keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY).isEmpty() || 
+            		!keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY).isEmpty() ||
+            		!keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.KEY).isEmpty();
+        }
+        catch (VRKeyStoreDAOException e)
+        {
+            LOG.error(e, e);
+        }
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
+
         return false;
     }
 
     @Override
     public boolean engineIsCertificateEntry(String alias)
     {
-        // TODO Auto-generated method stub
+        try
+        {
+			checkKeyStoreDAOIsLoaded();
+
+			return !keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE).isEmpty();
+        }
+        catch (VRKeyStoreDAOException e)
+        {
+            LOG.error(e, e);
+        }
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
+
         return false;
     }
 
@@ -271,10 +317,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public void engineStore(OutputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException
     {
-        if (!checkKeyStoreDAOIsLoaded())
-        {
-            throw new IOException();
-        }
+        checkKeyStoreDAOIsLoaded();
         
         try
         {
@@ -297,10 +340,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public void engineLoad(InputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException
     {
-        if (!checkKeyStoreDAOIsLoaded())
-        {
-            throw new IOException();
-        }
+        checkKeyStoreDAOIsLoaded();
         
         try
         {
