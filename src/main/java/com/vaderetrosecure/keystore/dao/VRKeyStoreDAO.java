@@ -3,7 +3,6 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import java.security.cert.Certificate;
 import java.util.Date;
 import java.util.List;
 
@@ -13,23 +12,17 @@ import java.util.List;
  */
 public interface VRKeyStoreDAO
 {
-    void checkSchema();
+    void checkSchema() throws VRKeyStoreDAOException;
     
-    KeyStoreMetaData getMetaData();
+    KeyStoreMetaData getMetaData() throws VRKeyStoreDAOException;
+    int countEntries() throws VRKeyStoreDAOException;
+    List<String> getAliases() throws VRKeyStoreDAOException;
+    List<KeyStoreEntry> getKeyStoreEntry(String alias, KeyStoreEntryType keyStoreEntryType) throws VRKeyStoreDAOException;
+    List<KeyStoreEntry> getKeyStoreEntry(String alias) throws VRKeyStoreDAOException;
+    Date engineGetCreationDate(String alias) throws VRKeyStoreDAOException;
     
-    int countEntries();
-    List<String> getAliases();
-    byte[] getKey(String alias);
-    Certificate getCertificate(String alias);
-    List<Certificate> getCertificateChain(String alias);
-    Date engineGetCreationDate(String alias);
+    void setMetaData(KeyStoreMetaData keyStoreMetaData) throws VRKeyStoreDAOException;
+    void setKeyStoreEntry(KeyStoreEntry keyStoreEntry) throws VRKeyStoreDAOException;
     
-    boolean isCertificateEntry(String alias);
-    boolean isKeyEntry(String alias);
-    
-    void setKey(String alias, byte[] key);
-    void setCertificate(String alias, Certificate certificate);
-    void setCertificateChain(String alias, Certificate[] certificateChain);
-    
-    void deleteEntry(String alias);
+    void deleteKeyStoreEntry(String alias) throws VRKeyStoreDAOException;
 }

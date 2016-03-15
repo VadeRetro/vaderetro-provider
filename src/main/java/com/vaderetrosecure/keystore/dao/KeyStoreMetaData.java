@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -44,6 +45,9 @@ import org.apache.log4j.Logger;
 public class KeyStoreMetaData
 {
     private final static Logger LOG = Logger.getLogger(KeyStoreMetaData.class);
+    
+    public static final int KEYSTORE_MAJOR_VERSION = 1;
+    public static final String KEYSTORE_VERSION = "1.0.0";
 
     private int majorVersion;
     private String version;
@@ -127,7 +131,7 @@ public class KeyStoreMetaData
         this.dataHash = dataHash;
     }
     
-    public static KeyStoreMetaData generate(int majorVersion, String version, char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, UnrecoverableKeyException
+    public static KeyStoreMetaData generate(char[] password) throws GeneralSecurityException, UnrecoverableKeyException
     {
         SecureRandom sr = new SecureRandom();
         byte[] salt = new byte[16];
@@ -156,14 +160,17 @@ public class KeyStoreMetaData
         }
 
         LOG.debug("data: " + DatatypeConverter.printHexBinary(data));
-        return new KeyStoreMetaData(majorVersion, version, new String(b64Enc.encode(salt), StandardCharsets.US_ASCII), 
+        return new KeyStoreMetaData(KEYSTORE_MAJOR_VERSION, KEYSTORE_VERSION, new String(b64Enc.encode(salt), StandardCharsets.US_ASCII), 
                 new String(b64Enc.encode(iv), StandardCharsets.US_ASCII), 
                 new String(b64Enc.encode(baos.toByteArray()), StandardCharsets.US_ASCII),
                 new String(DatatypeConverter.printHexBinary(sha2.digest()).toLowerCase()));
     }
     
-    public void checkIntegrity(char[] password) throws UnrecoverableKeyException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+    public void checkIntegrity(char[] password) throws UnrecoverableKeyException, GeneralSecurityException, IOException
     {
+        if ((KEYSTORE_MAJOR_VERSION != getMajorVersion()) || !KEYSTORE_VERSION.equals(getVersion()))
+            throw new IOException("bad version: expected " + KEYSTORE_VERSION);
+        
         Decoder b64Dec = Base64.getDecoder();
         MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
         

@@ -32,7 +32,7 @@ public abstract class VRKeyStoreDAOFactory
             return INSTANCE;
         
         // create instance of factory
-        String factoryClassStr = System.getProperty(DAO_FACTORY_CLASS_PROPERTY_NAME, "com.vaderetrosecure.keystore.dao.VRKeyStoreDAOFactoryItf");
+        String factoryClassStr = System.getProperty(DAO_FACTORY_CLASS_PROPERTY_NAME, VRKeyStoreDAOFactory.class.getName());
         if (factoryClassStr == null)
             throw new VRKeyStoreDAOException("system property '" + DAO_FACTORY_CLASS_PROPERTY_NAME + "' not set");
 
