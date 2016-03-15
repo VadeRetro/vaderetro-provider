@@ -23,6 +23,7 @@ public interface VRKeyStoreDAO
     
     void setMetaData(KeyStoreMetaData keyStoreMetaData) throws VRKeyStoreDAOException;
     void setKeyStoreEntry(KeyStoreEntry keyStoreEntry) throws VRKeyStoreDAOException;
+    void setKeyStoreEntries(List<KeyStoreEntry> keyStoreEntries) throws VRKeyStoreDAOException;
     
     void deleteKeyStoreEntry(String alias) throws VRKeyStoreDAOException;
 }

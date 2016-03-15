@@ -14,8 +14,10 @@ import java.security.KeyStoreSpi;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -23,6 +25,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 
 import org.apache.log4j.Logger;
 
@@ -64,7 +67,22 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public Key engineGetKey(String alias, char[] password) throws NoSuchAlgorithmException, UnrecoverableKeyException
     {
-        // TODO Auto-generated method stub
+        try
+        {
+			checkKeyStoreDAOIsLoaded();
+
+			List<KeyStoreEntry> entries = keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY);
+			if (!entries.isEmpty())
+				return entries.get(0) toArray(new Certificate[]{});
+			entries = keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY);
+			if (!entries.isEmpty())
+				return entries.get(0) toArray(new Certificate[]{});
+		}
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
+        
         return null;
     }
 
@@ -171,29 +189,84 @@ public class VRKeystoreSpi extends KeyStoreSpi
     @Override
     public void engineSetKeyEntry(String alias, Key key, char[] password, Certificate[] chain) throws KeyStoreException
     {
-        // TODO Auto-generated method stub
-        
+        try
+        {
+			checkKeyStoreDAOIsLoaded();
+
+			Date creationDate = Date.from(Instant.now());
+			if (SecretKey.class.isInstance(key))
+				keystoreDAO.setKeyStoreEntry(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getEncoded()));
+			else
+			{
+				List<KeyStoreEntry> entries = new ArrayList<>();
+				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getEncoded()));
+				if (chain != null)
+				{
+					for (int i = 0 ; i < chain.length ; i++)
+						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getEncoded()));
+				}
+				keystoreDAO.setKeyStoreEntries(entries);
+			}
+        }
+        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException e)
+        {
+            LOG.error(e, e);
+            throw new KeyStoreException(e);
+        }
     }
 
     @Override
     public void engineSetKeyEntry(String alias, byte[] key, Certificate[] chain) throws KeyStoreException
     {
-        // TODO Auto-generated method stub
-        
+        try
+        {
+			checkKeyStoreDAOIsLoaded();
+
+			Date creationDate = Date.from(Instant.now());
+			keystoreDAO.setKeyStoreEntry(new KeyStoreEntry(alias, KeyStoreEntryType.KEY, 0, creationDate, key));
+        }
+        catch (VRKeyStoreDAOException | IOException e)
+        {
+            LOG.error(e, e);
+            throw new KeyStoreException(e);
+        }
     }
 
     @Override
     public void engineSetCertificateEntry(String alias, Certificate cert) throws KeyStoreException
     {
-        // TODO Auto-generated method stub
-        
+        try
+        {
+			checkKeyStoreDAOIsLoaded();
+
+			Date creationDate = Date.from(Instant.now());
+			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getEncoded());
+			keystoreDAO.setKeyStoreEntry(kse);
+        }
+        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException e)
+        {
+            LOG.error(e, e);
+            throw new KeyStoreException(e);
+        }
     }
 
     @Override
     public void engineDeleteEntry(String alias) throws KeyStoreException
     {
-        // TODO Auto-generated method stub
-        
+        try
+        {
+			checkKeyStoreDAOIsLoaded();
+
+			keystoreDAO.deleteKeyStoreEntry(alias);
+        }
+        catch (VRKeyStoreDAOException e)
+        {
+            LOG.error(e, e);
+        }
+        catch (IOException e)
+        {
+            LOG.error(e, e);
+		}
     }
 
     @Override
