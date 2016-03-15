@@ -15,7 +15,7 @@ public interface VRKeyStoreDAO
 {
     void checkSchema();
     
-    IntegrityData getIntegrityData();
+    KeyStoreMetaData getMetaData();
     
     int countEntries();
     List<String> getAliases();
