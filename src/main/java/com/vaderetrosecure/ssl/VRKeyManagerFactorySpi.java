@@ -34,7 +34,5 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
     @Override
     protected void engineInit(KeyStore ks, char[] password) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException
     {
-        // TODO Auto-generated method stub
-
     }
 }
