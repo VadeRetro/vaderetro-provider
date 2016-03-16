@@ -15,20 +15,22 @@ public class KeyStoreEntry
     private String alias;
     private KeyStoreEntryType entryType;
     private int rank;
+    private String hostname;
     private Date creationDate;
     private String algorithm;
     private byte[] data;
 
     public KeyStoreEntry()
     {
-        this("", KeyStoreEntryType.KEY, 0, Date.from(Instant.now()), "", null);
+        this("", KeyStoreEntryType.KEY, 0, null, Date.from(Instant.now()), "", null);
     }
 
-    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data)
+    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, String hostname, Date creationDate, String algorithm, byte[] data)
     {
         this.alias = alias;
         this.entryType = entryType;
         this.rank = rank;
+        this.hostname = hostname;
         this.creationDate = creationDate;
         this.algorithm = algorithm;
         this.data = data;
@@ -62,6 +64,16 @@ public class KeyStoreEntry
     public void setRank(int rank)
     {
         this.rank = rank;
+    }
+
+    public String getHostname()
+    {
+        return hostname;
+    }
+
+    public void setHostname(String hostname)
+    {
+        this.hostname = hostname;
     }
 
     public Date getCreationDate()
