@@ -8,30 +8,28 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
-import com.vaderetrosecure.VRKeyStorageDAO;
+import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
 
 /**
  * @author ahonore
  *
  */
-public class VRX509KeyManager extends X509ExtendedKeyManager
+public class VRKeyStoreDAOX509KeyManager extends VRSNIX509ExtendedKeyManager
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger(VRX509KeyManager.class);
+    private final static Logger LOG = Logger.getLogger(VRKeyStoreDAOX509KeyManager.class);
 
-    private final VRKeyStorageDAO keyStorage;
+    private final VRKeyStoreDAO keyStoreDAO;
     private VRSNIMatcher sniMatcher;
-    private KeyManager keyManager;
+    private X509ExtendedKeyManager keyManager;
     
-    public VRX509KeyManager(VRKeyStorageDAO keyStorage)
+    public VRKeyStoreDAOX509KeyManager(VRKeyStoreDAO keyStoreDAO)
     {
-        this.keyStorage = keyStorage;
+        this.keyStoreDAO = keyStoreDAO;
         sniMatcher = null;
     }
     
@@ -49,7 +47,7 @@ public class VRX509KeyManager extends X509ExtendedKeyManager
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine)
     {
-        LOGGER.debug(keyType);
+        LOG.debug(keyType);
 //        return super.chooseEngineServerAlias(keyType, issuers, engine);
 //        String alias = keyManager.chooseEngineServerAlias(keyType, issuers, engine);
 //        return alias;

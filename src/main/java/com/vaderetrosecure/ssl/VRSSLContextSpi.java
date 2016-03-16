@@ -21,10 +21,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.StandardConstants;
 import javax.net.ssl.TrustManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Joiner;
+import org.apache.log4j.Logger;
 
 /**
  * @author ahonore
@@ -32,7 +29,7 @@ import com.google.common.base.Joiner;
  */
 public class VRSSLContextSpi extends SSLContextSpi
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger(VRSSLContextSpi.class);
+    private final static Logger LOG = Logger.getLogger(VRSSLContextSpi.class);
 
     private SSLContext delegate;
 
@@ -78,7 +75,7 @@ public class VRSSLContextSpi extends SSLContextSpi
                 return true;
             }
         }));
-        LOGGER.debug("CIPHER SUITES: " + Joiner.on(",").join(sslParams.getCipherSuites()));
+        LOG.debug("CIPHER SUITES: " + String.join(",", sslParams.getCipherSuites()));
         sslEngine.setSSLParameters(sslParams);
         return sslEngine;
     }
