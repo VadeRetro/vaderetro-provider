@@ -3,10 +3,11 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.spec.InvalidKeySpecException;
 
@@ -14,6 +15,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,19 +25,36 @@ import org.junit.Test;
  */
 public class KeyStoreMetaDataTest
 {
+    private KeyStoreMetaData keyStoreMetaData;
+    private final String masterPassword = "test-integrity";
+    
     @Before
     public void setUp() throws Exception
     {
+        keyStoreMetaData = KeyStoreMetaData.generate(masterPassword.toCharArray());
+    }
+
+    @Test(expected=UnrecoverableKeyException.class)
+    public void testIntegrityWrongMasterPassword() throws UnrecoverableKeyException, NoSuchAlgorithmException, InvalidKeySpecException, IOException
+    {
+        keyStoreMetaData.checkIntegrity("bad password".toCharArray());
     }
 
     @Test
-    public void testIntegrityAfterGeneration() throws UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+    public void testIntegrityRightMasterPassword() throws UnrecoverableKeyException, NoSuchAlgorithmException, InvalidKeySpecException, IOException
     {
-        SecureRandom sr = new SecureRandom();
-        String password = "test-integrity";
-        byte[] salt = new byte[8];
-        sr.nextBytes(salt);
-        KeyStoreMetaData id = KeyStoreMetaData.generate(1, "1.0.0", password.toCharArray());
-        id.checkIntegrity(password.toCharArray());
+        keyStoreMetaData.checkIntegrity(masterPassword.toCharArray());
+    }
+
+    @Test
+    public void testCipherDecipherData() throws UnrecoverableKeyException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    {
+        final String keyPassword = "key-password";
+        keyStoreMetaData.checkIntegrity(masterPassword.toCharArray());
+        
+        byte[] data = "the data to be ciphered".getBytes(StandardCharsets.UTF_8);
+        byte[] cipheredData = keyStoreMetaData.cipherKey(keyPassword.toCharArray(), data);
+        byte[] decipheredData = keyStoreMetaData.decipherKey(keyPassword.toCharArray(), cipheredData);
+        Assert.assertArrayEquals(data, decipheredData);
     }
 }
