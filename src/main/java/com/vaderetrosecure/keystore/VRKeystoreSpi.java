@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyStoreException;
 import java.security.KeyStoreSpi;
 import java.security.NoSuchAlgorithmException;
@@ -17,6 +18,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +27,8 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 
-import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.log4j.Logger;
 
@@ -73,15 +76,30 @@ public class VRKeystoreSpi extends KeyStoreSpi
 
 			List<KeyStoreEntry> entries = keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY);
 			if (!entries.isEmpty())
-				return entries.get(0) toArray(new Certificate[]{});
-			entries = keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY);
-			if (!entries.isEmpty())
-				return entries.get(0) toArray(new Certificate[]{});
+			{
+			    KeyStoreEntry kse = entries.get(0);
+			    KeyFactory kf = KeyFactory.getInstance(kse.getAlgorithm());
+				return kf.generatePrivate(new PKCS8EncodedKeySpec(kse.getData()));
+			}
+			
+            entries = keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY);
+            if (!entries.isEmpty())
+            {
+                KeyStoreEntry kse = entries.get(0);
+                return new SecretKeySpec(kse.getData(), kse.getAlgorithm());
+            }
+
+            return null;
 		}
-        catch (IOException e)
+        catch (IOException | VRKeyStoreDAOException e)
         {
             LOG.error(e, e);
 		}
+        catch (InvalidKeySpecException e)
+        {
+            LOG.error(e, e);
+            throw new NoSuchAlgorithmException(e);
+        }
         
         return null;
     }
@@ -136,10 +154,10 @@ public class VRKeystoreSpi extends KeyStoreSpi
             if (entries.isEmpty())
                 return Collections.emptyList();
             
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
             List<Certificate> certChain = new ArrayList<>();
             for (KeyStoreEntry kse : entries)
             {
+                CertificateFactory cf = CertificateFactory.getInstance(kse.getAlgorithm());
                 try (InputStream is = new ByteArrayInputStream(kse.getData()))
                 {
                     Certificate cert = cf.generateCertificate(is);
@@ -195,15 +213,15 @@ public class VRKeystoreSpi extends KeyStoreSpi
 
 			Date creationDate = Date.from(Instant.now());
 			if (SecretKey.class.isInstance(key))
-				keystoreDAO.setKeyStoreEntry(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getEncoded()));
+				keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getAlgorithm(), key.getEncoded())));
 			else
 			{
 				List<KeyStoreEntry> entries = new ArrayList<>();
-				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getEncoded()));
+				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), key.getEncoded()));
 				if (chain != null)
 				{
 					for (int i = 0 ; i < chain.length ; i++)
-						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getEncoded()));
+						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getType(), chain[i].getEncoded()));
 				}
 				keystoreDAO.setKeyStoreEntries(entries);
 			}
@@ -223,7 +241,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 			checkKeyStoreDAOIsLoaded();
 
 			Date creationDate = Date.from(Instant.now());
-			keystoreDAO.setKeyStoreEntry(new KeyStoreEntry(alias, KeyStoreEntryType.KEY, 0, creationDate, key));
+			keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.KEY, 0, creationDate, null, key)));
         }
         catch (VRKeyStoreDAOException | IOException e)
         {
@@ -240,8 +258,8 @@ public class VRKeystoreSpi extends KeyStoreSpi
 			checkKeyStoreDAOIsLoaded();
 
 			Date creationDate = Date.from(Instant.now());
-			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getEncoded());
-			keystoreDAO.setKeyStoreEntry(kse);
+			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getType(), cert.getEncoded());
+			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
         }
         catch (VRKeyStoreDAOException | IOException | CertificateEncodingException e)
         {

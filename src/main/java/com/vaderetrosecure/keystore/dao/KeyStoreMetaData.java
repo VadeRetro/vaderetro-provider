@@ -3,11 +3,9 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
@@ -25,7 +23,6 @@ import java.util.Base64.Encoder;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -48,13 +45,17 @@ public class KeyStoreMetaData
     
     public static final int KEYSTORE_MAJOR_VERSION = 1;
     public static final String KEYSTORE_VERSION = "1.0.0";
+    
+    private static final SecureRandom random = new SecureRandom();
 
     private int majorVersion;
     private String version;
     private String salt;
     private String iv;
-    private String data;
-    private String dataHash;
+    private String keyIV;
+    private String keyIVHash;
+    
+    private SecretKey masterKey;
     
     public KeyStoreMetaData()
     {
@@ -67,8 +68,10 @@ public class KeyStoreMetaData
         this.version = version;
         this.salt = salt;
         this.iv = iv;
-        this.data = data;
-        this.dataHash = dataHash;
+        this.keyIV = data;
+        this.keyIVHash = dataHash;
+        
+        masterKey = null;
     }
 
     public int getMajorVersion()
@@ -113,35 +116,34 @@ public class KeyStoreMetaData
 
     public String getData()
     {
-        return data;
+        return keyIV;
     }
 
     public void setData(String data)
     {
-        this.data = data;
+        this.keyIV = data;
     }
 
     public String getDataHash()
     {
-        return dataHash;
+        return keyIVHash;
     }
 
     public void setDataHash(String dataHash)
     {
-        this.dataHash = dataHash;
+        this.keyIVHash = dataHash;
     }
     
     public static KeyStoreMetaData generate(char[] password) throws GeneralSecurityException, UnrecoverableKeyException
     {
-        SecureRandom sr = new SecureRandom();
         byte[] salt = new byte[16];
-        sr.nextBytes(salt);
+        random.nextBytes(salt);
 
-        byte[] data = new byte[128];
-        sr.nextBytes(data);
+        byte[] keyIVData = new byte[16];
+        random.nextBytes(keyIVData);
 
         byte[] iv = new byte[16];
-        sr.nextBytes(iv);
+        random.nextBytes(iv);
 
         Encoder b64Enc = Base64.getEncoder();
         MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
@@ -151,7 +153,7 @@ public class KeyStoreMetaData
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (DigestOutputStream dos = new DigestOutputStream(new CipherOutputStream(baos, cipher), sha2))
         {
-            dos.write(data);
+            dos.write(keyIVData);
         }
         catch (IOException e)
         {
@@ -159,14 +161,14 @@ public class KeyStoreMetaData
             throw new UnrecoverableKeyException(e.getMessage());
         }
 
-        LOG.debug("data: " + DatatypeConverter.printHexBinary(data));
+        LOG.debug("data: " + DatatypeConverter.printHexBinary(keyIVData));
         return new KeyStoreMetaData(KEYSTORE_MAJOR_VERSION, KEYSTORE_VERSION, new String(b64Enc.encode(salt), StandardCharsets.US_ASCII), 
                 new String(b64Enc.encode(iv), StandardCharsets.US_ASCII), 
                 new String(b64Enc.encode(baos.toByteArray()), StandardCharsets.US_ASCII),
                 new String(DatatypeConverter.printHexBinary(sha2.digest()).toLowerCase()));
     }
     
-    public void checkIntegrity(char[] password) throws UnrecoverableKeyException, GeneralSecurityException, IOException
+    public void checkIntegrity(char[] masterPassword) throws UnrecoverableKeyException, GeneralSecurityException, IOException
     {
         if ((KEYSTORE_MAJOR_VERSION != getMajorVersion()) || !KEYSTORE_VERSION.equals(getVersion()))
             throw new IOException("bad version: expected " + KEYSTORE_VERSION);
@@ -175,25 +177,49 @@ public class KeyStoreMetaData
         MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
         
         // create secret key to decipher 
-        SecretKey secret = getAESSecretKey(password, b64Dec.decode(salt.getBytes(StandardCharsets.US_ASCII)));
-        
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(b64Dec.decode(iv.getBytes(StandardCharsets.US_ASCII))));
-        byte[] dataBytes = b64Dec.decode(data.getBytes(StandardCharsets.US_ASCII));
-        byte[] outBytes = new byte[dataBytes.length * 2]; // to be sure to read all bytes in one call
-        try (DigestInputStream dis = new DigestInputStream(new CipherInputStream(new ByteArrayInputStream(dataBytes), cipher), sha2))
-        {
-            dis.read(outBytes);
-        }
-        catch (IOException e)
-        {
-            LOG.fatal(e, e);
-            throw new UnrecoverableKeyException(e.getMessage());
-        }
-        
-        LOG.debug("data: " + DatatypeConverter.printHexBinary(outBytes));
-        if (!Arrays.equals(DatatypeConverter.parseHexBinary(dataHash), sha2.digest()))
+        masterKey = getAESSecretKey(masterPassword, b64Dec.decode(salt.getBytes(StandardCharsets.US_ASCII)));
+        byte[] rawKeyIV = getDecipheredKeyIV();
+        LOG.debug("data: " + DatatypeConverter.printHexBinary(rawKeyIV));
+        if (!Arrays.equals(DatatypeConverter.parseHexBinary(keyIVHash), sha2.digest(rawKeyIV)))
             throw new UnrecoverableKeyException("integrity check failed");
+    }
+    
+    public byte[] cipherKey(char[] keyPassword, byte[] rawKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    {
+        // 10 bytes of salt will be added at the beginning of the key
+        byte[] keySalt = new byte[10];
+        random.nextBytes(keySalt);
+        
+        byte[] cipherKey = new byte[keySalt.length + rawKey.length];
+        System.arraycopy(keySalt, 0, cipherKey, 0, keySalt.length);
+        System.arraycopy(rawKey, 0, cipherKey, keySalt.length, rawKey.length);
+        
+        Decoder b64Dec = Base64.getDecoder();
+        SecretKey secret = getAESSecretKey(keyPassword, b64Dec.decode(salt.getBytes(StandardCharsets.US_ASCII)));
+        byte[] rawKeyIV = getDecipheredKeyIV();
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
+        return cipher.doFinal(rawKey);
+    }
+    
+    public byte[] decipherKey(char[] keyPassword, byte[] cipheredKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    {
+        // 10 bytes of salt will be removed from the beginning of the key
+        Decoder b64Dec = Base64.getDecoder();
+        SecretKey secret = getAESSecretKey(keyPassword, b64Dec.decode(salt.getBytes(StandardCharsets.US_ASCII)));
+        byte[] rawKeyIV = getDecipheredKeyIV();
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
+        byte[] saltedKey = cipher.doFinal(cipheredKey);
+        return Arrays.copyOfRange(saltedKey, 10, saltedKey.length);
+    }
+    
+    private byte[] getDecipheredKeyIV() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    {
+        Decoder b64Dec = Base64.getDecoder();
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, masterKey, new IvParameterSpec(b64Dec.decode(iv.getBytes(StandardCharsets.US_ASCII))));
+        return cipher.doFinal(b64Dec.decode(keyIV.getBytes(StandardCharsets.US_ASCII)));
     }
     
     private static SecretKey getAESSecretKey(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException
@@ -202,15 +228,5 @@ public class KeyStoreMetaData
         KeySpec spec = new PBEKeySpec(password, salt, 65536, 256);
         SecretKey tmp = factory.generateSecret(spec);
         return new SecretKeySpec(tmp.getEncoded(), "AES");
-    }
-    
-    public Cipher getKeyCipherer()
-    {
-        return null;
-    }
-    
-    public Cipher getKeyDecipherer()
-    {
-        return null;
     }
 }

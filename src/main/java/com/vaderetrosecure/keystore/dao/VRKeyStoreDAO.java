@@ -3,6 +3,7 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -22,8 +23,7 @@ public interface VRKeyStoreDAO
     Date engineGetCreationDate(String alias) throws VRKeyStoreDAOException;
     
     void setMetaData(KeyStoreMetaData keyStoreMetaData) throws VRKeyStoreDAOException;
-    void setKeyStoreEntry(KeyStoreEntry keyStoreEntry) throws VRKeyStoreDAOException;
-    void setKeyStoreEntries(List<KeyStoreEntry> keyStoreEntries) throws VRKeyStoreDAOException;
+    void setKeyStoreEntries(Collection<KeyStoreEntry> keyStoreEntries) throws VRKeyStoreDAOException;
     
     void deleteKeyStoreEntry(String alias) throws VRKeyStoreDAOException;
 }
