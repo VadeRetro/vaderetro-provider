@@ -22,7 +22,7 @@ public abstract class VRKeyStoreDAOFactory
     private static final String DAO_FACTORY_PROPERTIES_FILE_ENV_NAME = "com.vaderetrosecure.keystore.dao.properties";
     private static VRKeyStoreDAOFactory INSTANCE = null;
     
-    private VRKeyStoreDAOFactory()
+    protected VRKeyStoreDAOFactory()
     {
     }
     
