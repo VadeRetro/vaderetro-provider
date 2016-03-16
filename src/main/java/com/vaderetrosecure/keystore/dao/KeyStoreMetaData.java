@@ -114,22 +114,22 @@ public class KeyStoreMetaData
         this.iv = iv;
     }
 
-    public String getData()
+    public String getKeyIV()
     {
         return keyIV;
     }
 
-    public void setData(String data)
+    public void setKeyIV(String data)
     {
         this.keyIV = data;
     }
 
-    public String getDataHash()
+    public String getKeyIVHash()
     {
         return keyIVHash;
     }
 
-    public void setDataHash(String dataHash)
+    public void setKeyIVHash(String dataHash)
     {
         this.keyIVHash = dataHash;
     }

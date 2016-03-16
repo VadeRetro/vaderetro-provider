@@ -438,7 +438,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
         
         try
         {
-            keystoreDAO.checkSchema();
+            keystoreDAO.createSchema();
             KeyStoreMetaData ksmd = KeyStoreMetaData.generate(password);
             keystoreDAO.setMetaData(ksmd);
         }

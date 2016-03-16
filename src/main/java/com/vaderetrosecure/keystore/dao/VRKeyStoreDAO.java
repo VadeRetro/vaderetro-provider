@@ -13,7 +13,13 @@ import java.util.List;
  */
 public interface VRKeyStoreDAO
 {
-    void checkSchema() throws VRKeyStoreDAOException;
+    /**
+     * Create tables of the databases.
+     * Be aware that this method first try to delete all tables if exist and create the database from scratch.
+     * 
+     * @throws VRKeyStoreDAOException
+     */
+    void createSchema() throws VRKeyStoreDAOException;
     
     KeyStoreMetaData getMetaData() throws VRKeyStoreDAOException;
     int countEntries() throws VRKeyStoreDAOException;
