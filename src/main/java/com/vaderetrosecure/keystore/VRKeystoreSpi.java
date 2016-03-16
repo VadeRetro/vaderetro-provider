@@ -175,7 +175,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
             List<Certificate> certChain = new ArrayList<>();
             for (KeyStoreEntry kse : entries)
             {
-                CertificateFactory cf = CertificateFactory.getInstance(kse.getAlgorithm());
+                CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 try (InputStream is = new ByteArrayInputStream(kse.getData()))
                 {
                     Certificate cert = cf.generateCertificate(is);
@@ -243,7 +243,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 					    List<CertificateName> certNames = new ArrayList<>();
 					    for (String name : getCertificateNames(chain[i]))
 					        certNames.add(new CertificateName(name, alias, i));
-						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getType(), keyStoreMetaData.cipherKey(password, chain[i].getEncoded()), certNames));
+						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), keyStoreMetaData.cipherKey(password, chain[i].getEncoded()), certNames));
 					}
 				}
 				keystoreDAO.setKeyStoreEntries(entries);
@@ -284,7 +284,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 			List<CertificateName> certNames = new ArrayList<>();
 			for (String name : getCertificateNames(cert))
 			    certNames.add(new CertificateName(name, alias, 0));
-			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getType(), cert.getEncoded(), certNames);
+			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded(), certNames);
 			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
         }
         catch (VRKeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
