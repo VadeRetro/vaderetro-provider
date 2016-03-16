@@ -41,7 +41,7 @@ import org.apache.log4j.Logger;
  */
 public class KeyStoreMetaData
 {
-    private final static Logger LOG = Logger.getLogger(KeyStoreMetaData.class);
+    private static final Logger LOG = Logger.getLogger(KeyStoreMetaData.class);
     
     public static final int KEYSTORE_MAJOR_VERSION = 1;
     public static final String KEYSTORE_VERSION = "1.0.0";

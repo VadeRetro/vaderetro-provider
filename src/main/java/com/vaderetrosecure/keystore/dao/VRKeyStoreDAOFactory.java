@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class VRKeyStoreDAOFactory
 {
-    private final static Logger LOG = Logger.getLogger(VRKeyStoreDAOFactory.class);
+    private static final Logger LOG = Logger.getLogger(VRKeyStoreDAOFactory.class);
 
     public static final String DAO_FACTORY_CLASS_PROPERTY_NAME = "com.vaderetrosecure.keystore.dao.factory";
     
