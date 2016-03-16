@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyStoreException;
@@ -18,20 +20,32 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 
 import org.apache.log4j.Logger;
 
+import com.vaderetrosecure.keystore.dao.CertificateName;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
@@ -48,14 +62,13 @@ public class VRKeystoreSpi extends KeyStoreSpi
     private final static Logger LOG = Logger.getLogger(VRKeystoreSpi.class);
 
     private VRKeyStoreDAO keystoreDAO;
-//    private Cipher masterCipher;
-//    private Cipher masterDecipher;
+    private KeyStoreMetaData keyStoreMetaData;
     
     public VRKeystoreSpi()
     {
         keystoreDAO = null;
-//        masterCipher = null;
-//        masterDecipher = null;
+        keyStoreMetaData = null;
+
         try
         {
             VRKeyStoreDAOFactory ksFactory = VRKeyStoreDAOFactory.getInstance();
@@ -79,14 +92,14 @@ public class VRKeystoreSpi extends KeyStoreSpi
 			{
 			    KeyStoreEntry kse = entries.get(0);
 			    KeyFactory kf = KeyFactory.getInstance(kse.getAlgorithm());
-				return kf.generatePrivate(new PKCS8EncodedKeySpec(kse.getData()));
+			    return kf.generatePrivate(new PKCS8EncodedKeySpec(keyStoreMetaData.decipherKey(password, kse.getData())));
 			}
 			
             entries = keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY);
             if (!entries.isEmpty())
             {
                 KeyStoreEntry kse = entries.get(0);
-                return new SecretKeySpec(kse.getData(), kse.getAlgorithm());
+                return new SecretKeySpec(keyStoreMetaData.decipherKey(password, kse.getData()), kse.getAlgorithm());
             }
 
             return null;
@@ -99,6 +112,11 @@ public class VRKeystoreSpi extends KeyStoreSpi
         {
             LOG.error(e, e);
             throw new NoSuchAlgorithmException(e);
+        }
+        catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e)
+        {
+            LOG.error(e, e);
+            throw new UnrecoverableKeyException("wrong key password");
         }
         
         return null;
@@ -213,26 +231,31 @@ public class VRKeystoreSpi extends KeyStoreSpi
 
 			Date creationDate = Date.from(Instant.now());
 			if (SecretKey.class.isInstance(key))
-				keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getAlgorithm(), key.getEncoded())));
+				keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKey(password, key.getEncoded()))));
 			else
 			{
 				List<KeyStoreEntry> entries = new ArrayList<>();
-				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), key.getEncoded()));
+				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKey(password, key.getEncoded()), Collections.emptyList()));
 				if (chain != null)
 				{
 					for (int i = 0 ; i < chain.length ; i++)
-						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getType(), chain[i].getEncoded()));
+					{
+					    List<CertificateName> certNames = new ArrayList<>();
+					    for (String name : getCertificateNames(chain[i]))
+					        certNames.add(new CertificateName(name, alias, i));
+						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getType(), keyStoreMetaData.cipherKey(password, chain[i].getEncoded()), certNames));
+					}
 				}
 				keystoreDAO.setKeyStoreEntries(entries);
 			}
         }
-        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException e)
+        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException | InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | CertificateParsingException | InvalidNameException e)
         {
             LOG.error(e, e);
             throw new KeyStoreException(e);
         }
     }
-
+    
     @Override
     public void engineSetKeyEntry(String alias, byte[] key, Certificate[] chain) throws KeyStoreException
     {
@@ -258,10 +281,13 @@ public class VRKeystoreSpi extends KeyStoreSpi
 			checkKeyStoreDAOIsLoaded();
 
 			Date creationDate = Date.from(Instant.now());
-			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getType(), cert.getEncoded());
+			List<CertificateName> certNames = new ArrayList<>();
+			for (String name : getCertificateNames(cert))
+			    certNames.add(new CertificateName(name, alias, 0));
+			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getType(), cert.getEncoded(), certNames);
 			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
         }
-        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException e)
+        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
         {
             LOG.error(e, e);
             throw new KeyStoreException(e);
@@ -435,8 +461,8 @@ public class VRKeystoreSpi extends KeyStoreSpi
         
         try
         {
-            KeyStoreMetaData ksmd = keystoreDAO.getMetaData();
-            ksmd.checkIntegrity(password);
+            keyStoreMetaData = keystoreDAO.getMetaData();
+            keyStoreMetaData.checkIntegrity(password);
         }
         catch (VRKeyStoreDAOException | GeneralSecurityException e)
         {
@@ -454,5 +480,27 @@ public class VRKeystoreSpi extends KeyStoreSpi
             LOG.fatal(errorMsg);
             throw new IOException(errorMsg);
         }
+    }
+    
+    private List<String> getCertificateNames(Certificate cert) throws InvalidNameException, CertificateParsingException
+    {
+        if (!X509Certificate.class.isInstance(cert))
+            return new ArrayList<>();
+        
+        Set<String> hosts = new HashSet<>();
+        X509Certificate x509 = (X509Certificate) cert;
+        String dn = x509.getSubjectX500Principal().getName();
+        LdapName ldapDN = new LdapName(dn);
+        for(Rdn rdn: ldapDN.getRdns())
+            if (rdn.getType().equalsIgnoreCase("CN"))
+                hosts.add((String) rdn.getValue());
+
+        Collection<List<?>> altList = x509.getSubjectAlternativeNames();
+        if (altList != null)
+            for (List<?> alt : altList)
+                if (((Integer) alt.get(0)).intValue() == 2) // 2 is a SubjectALT DNS name
+                    hosts.add((String) alt.get(1));
+        
+        return new ArrayList<>(hosts);
     }
 }

@@ -4,7 +4,9 @@
 package com.vaderetrosecure.keystore.dao;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author ahonore
@@ -15,25 +17,30 @@ public class KeyStoreEntry
     private String alias;
     private KeyStoreEntryType entryType;
     private int rank;
-    private String hostname;
     private Date creationDate;
     private String algorithm;
     private byte[] data;
+    private List<CertificateName> certificateNames;
 
     public KeyStoreEntry()
     {
-        this("", KeyStoreEntryType.KEY, 0, null, Date.from(Instant.now()), "", null);
+        this("", KeyStoreEntryType.KEY, 0, Date.from(Instant.now()), "", null);
     }
 
-    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, String hostname, Date creationDate, String algorithm, byte[] data)
+    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data)
+    {
+        this(alias, entryType, rank, creationDate, algorithm, data, new ArrayList<>());
+    }
+
+    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data, List<CertificateName> certificateNames)
     {
         this.alias = alias;
         this.entryType = entryType;
         this.rank = rank;
-        this.hostname = hostname;
         this.creationDate = creationDate;
         this.algorithm = algorithm;
         this.data = data;
+        this.certificateNames = certificateNames;
     }
 
     public String getAlias()
@@ -66,16 +73,6 @@ public class KeyStoreEntry
         this.rank = rank;
     }
 
-    public String getHostname()
-    {
-        return hostname;
-    }
-
-    public void setHostname(String hostname)
-    {
-        this.hostname = hostname;
-    }
-
     public Date getCreationDate()
     {
         return creationDate;
@@ -105,5 +102,14 @@ public class KeyStoreEntry
     {
         this.data = data;
     }
-    
+
+    public List<CertificateName> getCertificateNames()
+    {
+        return certificateNames;
+    }
+
+    public void setCertificateNames(List<CertificateName> certificateNames)
+    {
+        this.certificateNames = certificateNames;
+    }
 }

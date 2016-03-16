@@ -168,7 +168,7 @@ public class KeyStoreMetaData
                 new String(DatatypeConverter.printHexBinary(sha2.digest()).toLowerCase()));
     }
     
-    public void checkIntegrity(char[] masterPassword) throws UnrecoverableKeyException, GeneralSecurityException, IOException
+    public void checkIntegrity(char[] masterPassword) throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, InvalidKeySpecException
     {
         if ((KEYSTORE_MAJOR_VERSION != getMajorVersion()) || !KEYSTORE_VERSION.equals(getVersion()))
             throw new IOException("bad version: expected " + KEYSTORE_VERSION);
@@ -178,10 +178,19 @@ public class KeyStoreMetaData
         
         // create secret key to decipher 
         masterKey = getAESSecretKey(masterPassword, b64Dec.decode(salt.getBytes(StandardCharsets.US_ASCII)));
-        byte[] rawKeyIV = getDecipheredKeyIV();
-        LOG.debug("data: " + DatatypeConverter.printHexBinary(rawKeyIV));
-        if (!Arrays.equals(DatatypeConverter.parseHexBinary(keyIVHash), sha2.digest(rawKeyIV)))
+        byte[] rawKeyIV;
+        try
+        {
+            rawKeyIV = getDecipheredKeyIV();
+            LOG.debug("data: " + DatatypeConverter.printHexBinary(rawKeyIV));
+            if (!Arrays.equals(DatatypeConverter.parseHexBinary(keyIVHash), sha2.digest(rawKeyIV)))
+                throw new UnrecoverableKeyException("integrity check failed");
+        }
+        catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e)
+        {
+            LOG.fatal(e, e);
             throw new UnrecoverableKeyException("integrity check failed");
+        }
     }
     
     public byte[] cipherKey(char[] keyPassword, byte[] rawKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
@@ -199,7 +208,7 @@ public class KeyStoreMetaData
         byte[] rawKeyIV = getDecipheredKeyIV();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
-        return cipher.doFinal(rawKey);
+        return cipher.doFinal(cipherKey);
     }
     
     public byte[] decipherKey(char[] keyPassword, byte[] cipheredKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
