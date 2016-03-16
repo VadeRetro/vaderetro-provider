@@ -4,6 +4,7 @@
 package com.vaderetrosecure.keystore.dao.sql;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Blob;
@@ -242,8 +243,37 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
     @Override
     public void setKeyStoreEntries(Collection<KeyStoreEntry> keyStoreEntries) throws VRKeyStoreDAOException
     {
-        // TODO Auto-generated method stub
-        // insert or update
+        try (Connection conn = dataSource.getConnection())
+        {
+            boolean autoCom = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement psDel = conn.prepareStatement("delete from " + KEYSTORE_ENTRIES_TABLE + " where alias=?"); 
+            		PreparedStatement psIns = conn.prepareStatement("insert into " + KEYSTORE_ENTRIES_TABLE + " (alias,entry_type,rank,creation_date,algorithm,data) value(?,?,?,?,?,?)"))
+            {
+	            for (KeyStoreEntry kse : keyStoreEntries)
+	            {
+	            	psDel.setString(1, kse.getAlias());
+	            	psDel.executeUpdate();
+
+	            	psIns.setString(1, kse.getAlias());
+	            	psIns.setInt(2, kse.getEntryType().ordinal());
+	            	psIns.setInt(3, kse.getRank());
+	            	psIns.setLong(4, kse.getCreationDate().getTime());
+	            	psIns.setString(5, kse.getAlgorithm());
+	            	psIns.setBlob(6, new ByteArrayInputStream(kse.getData()));
+	            	psIns.executeUpdate();
+	            }
+            }
+            
+            conn.commit();
+            conn.setAutoCommit(autoCom);
+        }
+        catch (SQLException e)
+        {
+            LOG.error(e, e);
+            throw new VRKeyStoreDAOException(e);
+        }
     }
 
     @Override
@@ -251,8 +281,8 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
     {
         try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("delete from " + KEYSTORE_ENTRIES_TABLE + " where alias=?"))
         {
-            ps.setString(1, alias);
-            ps.executeUpdate();
+        	ps.setString(1, alias);
+        	ps.executeUpdate();
         }
         catch (SQLException e)
         {
