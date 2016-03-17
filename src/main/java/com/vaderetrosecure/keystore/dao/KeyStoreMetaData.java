@@ -161,7 +161,6 @@ public class KeyStoreMetaData
             throw new UnrecoverableKeyException(e.getMessage());
         }
 
-        LOG.debug("data: " + DatatypeConverter.printHexBinary(keyIVData));
         return new KeyStoreMetaData(KEYSTORE_MAJOR_VERSION, KEYSTORE_VERSION, new String(b64Enc.encode(salt), StandardCharsets.US_ASCII), 
                 new String(b64Enc.encode(iv), StandardCharsets.US_ASCII), 
                 new String(b64Enc.encode(baos.toByteArray()), StandardCharsets.US_ASCII),
@@ -182,7 +181,6 @@ public class KeyStoreMetaData
         try
         {
             rawKeyIV = getDecipheredKeyIV();
-            LOG.debug("data: " + DatatypeConverter.printHexBinary(rawKeyIV));
             if (!Arrays.equals(DatatypeConverter.parseHexBinary(keyIVHash), sha2.digest(rawKeyIV)))
                 throw new UnrecoverableKeyException("integrity check failed");
         }
