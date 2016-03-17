@@ -79,6 +79,12 @@ public class VRKeystoreSpi extends KeyStoreSpi
             LOG.fatal(e, e);
         }
     }
+
+    VRKeystoreSpi(VRKeyStoreDAO keystoreDAO)
+    {
+        this.keystoreDAO = keystoreDAO;
+        keyStoreMetaData = null;
+    }
     
     @Override
     public Key engineGetKey(String alias, char[] password) throws NoSuchAlgorithmException, UnrecoverableKeyException
@@ -243,7 +249,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 					    List<CertificateName> certNames = new ArrayList<>();
 					    for (String name : getCertificateNames(chain[i]))
 					        certNames.add(new CertificateName(name, alias, i));
-						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), keyStoreMetaData.cipherKey(password, chain[i].getEncoded()), certNames));
+						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), certNames));
 					}
 				}
 				keystoreDAO.setKeyStoreEntries(entries);
@@ -474,7 +480,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
     
     private void checkKeyStoreDAOIsLoaded() throws IOException
     {
-        if (keystoreDAO != null)
+        if (keystoreDAO == null)
         {
             final String errorMsg = "keystore dao is not loaded";
             LOG.fatal(errorMsg);
