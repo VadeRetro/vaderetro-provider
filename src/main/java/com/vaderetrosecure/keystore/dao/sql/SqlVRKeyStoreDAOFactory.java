@@ -27,11 +27,6 @@ import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOFactory;
 public class SqlVRKeyStoreDAOFactory extends VRKeyStoreDAOFactory
 {
     private final static Logger LOG = Logger.getLogger(SqlVRKeyStoreDAOFactory.class);
-
-    static
-    {
-    	System.setProperty(VRKeyStoreDAOFactory.DAO_FACTORY_CLASS_PROPERTY_NAME, SqlVRKeyStoreDAOFactory.class.getName());
-    }
     
     private VRKeyStoreDAO keyStoreDAO;
     
