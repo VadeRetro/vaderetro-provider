@@ -63,13 +63,14 @@ public abstract class VRKeyStoreDAOFactory
         try (InputStream is = ClassLoader.getSystemResourceAsStream(propFile))
         {
             if (is == null)
-                throw new VRKeyStoreDAOException("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_ENV_NAME + "' file");
-            prop.load(is);
+                LOG.warn("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_ENV_NAME + "' file");
+            else
+                prop.load(is);
             return prop;
         }
         catch (IOException e)
         {
-            LOG.fatal(e, e);
+            LOG.warn(e);
             throw new VRKeyStoreDAOException(e);
         }
     }
