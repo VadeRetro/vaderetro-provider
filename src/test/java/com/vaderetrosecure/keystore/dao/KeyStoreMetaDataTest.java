@@ -53,7 +53,7 @@ public class KeyStoreMetaDataTest
         keyStoreMetaData.checkIntegrity(masterPassword.toCharArray());
         
         byte[] data = "the data to be ciphered".getBytes(StandardCharsets.UTF_8);
-        byte[] cipheredData = keyStoreMetaData.cipherKey(keyPassword.toCharArray(), data);
+        String cipheredData = keyStoreMetaData.cipherKey(keyPassword.toCharArray(), data);
         byte[] decipheredData = keyStoreMetaData.decipherKey(keyPassword.toCharArray(), cipheredData);
         Assert.assertArrayEquals(data, decipheredData);
     }

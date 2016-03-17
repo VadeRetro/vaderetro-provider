@@ -191,7 +191,7 @@ public class KeyStoreMetaData
         }
     }
     
-    public byte[] cipherKey(char[] keyPassword, byte[] rawKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    public String cipherKey(char[] keyPassword, byte[] rawKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         // 10 bytes of salt will be added at the beginning of the key
         byte[] keySalt = new byte[10];
@@ -202,14 +202,15 @@ public class KeyStoreMetaData
         System.arraycopy(rawKey, 0, cipherKey, keySalt.length, rawKey.length);
         
         Decoder b64Dec = Base64.getDecoder();
+        Encoder b64Enc = Base64.getEncoder();
         SecretKey secret = getAESSecretKey(keyPassword, b64Dec.decode(salt.getBytes(StandardCharsets.US_ASCII)));
         byte[] rawKeyIV = getDecipheredKeyIV();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
-        return cipher.doFinal(cipherKey);
+        return new String(b64Enc.encode(cipher.doFinal(cipherKey)), StandardCharsets.US_ASCII);
     }
     
-    public byte[] decipherKey(char[] keyPassword, byte[] cipheredKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    public byte[] decipherKey(char[] keyPassword, String cipheredKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         // 10 bytes of salt will be removed from the beginning of the key
         Decoder b64Dec = Base64.getDecoder();
@@ -217,7 +218,7 @@ public class KeyStoreMetaData
         byte[] rawKeyIV = getDecipheredKeyIV();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
-        byte[] saltedKey = cipher.doFinal(cipheredKey);
+        byte[] saltedKey = cipher.doFinal(b64Dec.decode(cipheredKey.getBytes(StandardCharsets.US_ASCII)));
         return Arrays.copyOfRange(saltedKey, 10, saltedKey.length);
     }
     
