@@ -4,10 +4,8 @@
 package com.vaderetrosecure.keystore.dao.sql;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -261,7 +259,7 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
 	            	psIns.setInt(3, kse.getRank());
 	            	psIns.setLong(4, kse.getCreationDate().getTime());
 	            	psIns.setString(5, kse.getAlgorithm());
-	            	psIns.setBlob(6, new ByteArrayInputStream(kse.getData()));
+	            	psIns.setString(6, kse.getData());
 	            	psIns.executeUpdate();
 	            }
             }
@@ -298,8 +296,7 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         int rank = resultSet.getInt("rank");
         Date creationDate = Date.from(Instant.ofEpochMilli(resultSet.getLong("creation_date")));
         String algorithm = resultSet.getString("algorithm");
-        Blob blob = resultSet.getBlob("data");
-        byte[] data = blob.getBytes(1, (int) blob.length());
+        String data = resultSet.getString("data");
         return new KeyStoreEntry(alias, entrytype, rank, creationDate, algorithm, data);
     }
 }
