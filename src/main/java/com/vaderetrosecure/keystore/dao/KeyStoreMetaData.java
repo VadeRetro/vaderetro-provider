@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -22,7 +23,10 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.log4j.Logger;
 
@@ -41,10 +45,10 @@ public class KeyStoreMetaData
 
     private int majorVersion;
     private String version;
-    private String salt;
-    private String iv;
-    private String keyIV;
-    private String keyIVHash;
+    private byte[] salt;
+    private byte[] iv;
+    private byte[] keyIV;
+    private byte[] keyIVHash;
     
     private SecretKey masterKey;
     
@@ -87,42 +91,42 @@ public class KeyStoreMetaData
 
     public byte[] getSalt()
     {
-        return CryptoTools.b64Decode(salt);
+        return salt;
     }
 
     public void setSalt(byte[] salt)
     {
-        this.salt = CryptoTools.b64Encode(salt);
+        this.salt = salt;
     }
 
     public byte[] getIV()
     {
-        return CryptoTools.b64Decode(iv);
+        return iv;
     }
 
     public void setIV(byte[] iv)
     {
-        this.iv = CryptoTools.b64Encode(iv);
+        this.iv = iv;
     }
 
     public byte[] getKeyIV()
     {
-        return CryptoTools.b64Decode(keyIV);
+        return keyIV;
     }
 
     public void setKeyIV(byte[] keyIV)
     {
-        this.keyIV = CryptoTools.b64Encode(keyIV);
+        this.keyIV = keyIV;
     }
 
     public byte[] getKeyIVHash()
     {
-        return CryptoTools.hexStringDecode(keyIVHash);
+        return keyIVHash;
     }
 
     public void setKeyIVHash(byte[] keyIVHash)
     {
-        this.keyIVHash = CryptoTools.hexStringEncode(keyIVHash);
+        this.keyIVHash = keyIVHash;
     }
     
     public static KeyStoreMetaData generate(char[] password) throws GeneralSecurityException, UnrecoverableKeyException
@@ -137,7 +141,7 @@ public class KeyStoreMetaData
         random.nextBytes(iv);
 
         MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
-        SecretKey secret = CryptoTools.getAESSecretKey(password, salt);
+        SecretKey secret = getAESSecretKey(password, salt);
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, secret, new IvParameterSpec(iv));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -162,7 +166,7 @@ public class KeyStoreMetaData
         MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
         
         // create secret key to decipher 
-        masterKey = CryptoTools.getAESSecretKey(masterPassword, getSalt());
+        masterKey = getAESSecretKey(masterPassword, getSalt());
         byte[] rawKeyIV;
         try
         {
@@ -187,7 +191,7 @@ public class KeyStoreMetaData
         System.arraycopy(keySalt, 0, cipherKey, 0, keySalt.length);
         System.arraycopy(rawKey, 0, cipherKey, keySalt.length, rawKey.length);
         
-        SecretKey secret = CryptoTools.getAESSecretKey(keyPassword, getSalt());
+        SecretKey secret = getAESSecretKey(keyPassword, getSalt());
         byte[] rawKeyIV = getDecipheredKeyIV();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
@@ -197,7 +201,7 @@ public class KeyStoreMetaData
     public byte[] decipherKey(char[] keyPassword, byte[] cipheredKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         // 10 bytes of salt will be removed from the beginning of the key
-        SecretKey secret = CryptoTools.getAESSecretKey(keyPassword, getSalt());
+        SecretKey secret = getAESSecretKey(keyPassword, getSalt());
         byte[] rawKeyIV = getDecipheredKeyIV();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
@@ -210,5 +214,13 @@ public class KeyStoreMetaData
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, masterKey, new IvParameterSpec(getIV()));
         return cipher.doFinal(getKeyIV());
+    }
+
+    private static SecretKey getAESSecretKey(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException
+    {
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(password, salt, 65536, 256);
+        SecretKey tmp = factory.generateSecret(spec);
+        return new SecretKeySpec(tmp.getEncoded(), "AES");
     }
 }

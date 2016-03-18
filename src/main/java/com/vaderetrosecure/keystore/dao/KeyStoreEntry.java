@@ -19,7 +19,7 @@ public class KeyStoreEntry
     private int rank;
     private Date creationDate;
     private String algorithm;
-    private String data;
+    private byte[] data;
     private List<CertificateName> certificateNames;
 
     public KeyStoreEntry()
@@ -95,12 +95,12 @@ public class KeyStoreEntry
 
     public byte[] getData()
     {
-        return CryptoTools.b64Decode(data);
+        return data;
     }
 
     public void setData(byte[] data)
     {
-        this.data = CryptoTools.b64Encode(data);
+        this.data = data;
     }
 
     public List<CertificateName> getCertificateNames()
