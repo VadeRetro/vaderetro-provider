@@ -19,7 +19,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
