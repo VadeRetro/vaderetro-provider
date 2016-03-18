@@ -454,22 +454,22 @@ public class VRKeystoreSpi extends KeyStoreSpi
     {
         checkKeyStoreDAOIsLoaded();
         
-        try
-        {
-            keystoreDAO.createSchema();
-            KeyStoreMetaData ksmd = KeyStoreMetaData.generate(password);
-            keystoreDAO.setMetaData(ksmd);
-        }
-        catch (VRKeyStoreDAOException | UnrecoverableKeyException e)
-        {
-            LOG.error(e, e);
-            throw new IOException(e);
-        }
-        catch (GeneralSecurityException e)
-        {
-            LOG.error(e, e);
-            throw new NoSuchAlgorithmException(e);
-        }
+//        try
+//        {
+//            keystoreDAO.createSchema();
+//            KeyStoreMetaData ksmd = KeyStoreMetaData.generate(password);
+//            keystoreDAO.setMetaData(ksmd);
+//        }
+//        catch (VRKeyStoreDAOException | UnrecoverableKeyException e)
+//        {
+//            LOG.error(e, e);
+//            throw new IOException(e);
+//        }
+//        catch (GeneralSecurityException e)
+//        {
+//            LOG.error(e, e);
+//            throw new NoSuchAlgorithmException(e);
+//        }
     }
 
     @Override
@@ -481,11 +481,30 @@ public class VRKeystoreSpi extends KeyStoreSpi
         {
             keyStoreMetaData = keystoreDAO.getMetaData();
             keyStoreMetaData.checkIntegrity(password);
+            return;
         }
-        catch (VRKeyStoreDAOException | GeneralSecurityException e)
+        catch (UnrecoverableKeyException | InvalidKeySpecException | VRKeyStoreDAOException e)
         {
+            LOG.debug(e, e);
             LOG.error(e);
+        }
+        
+        try
+        {
+            keystoreDAO.createSchema();
+            keyStoreMetaData = KeyStoreMetaData.generate(password);
+            keystoreDAO.setMetaData(keyStoreMetaData);
+            keyStoreMetaData.checkIntegrity(password);
+        }
+        catch (VRKeyStoreDAOException | UnrecoverableKeyException e)
+        {
+            LOG.error(e, e);
             throw new IOException(e);
+        }
+        catch (GeneralSecurityException e)
+        {
+            LOG.error(e, e);
+            throw new NoSuchAlgorithmException(e);
         }
     }
 
