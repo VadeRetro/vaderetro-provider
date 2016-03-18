@@ -480,31 +480,34 @@ public class VRKeystoreSpi extends KeyStoreSpi
         try
         {
             keyStoreMetaData = keystoreDAO.getMetaData();
-            keyStoreMetaData.checkIntegrity(password);
-            return;
         }
-        catch (UnrecoverableKeyException | InvalidKeySpecException | VRKeyStoreDAOException e)
+        catch (VRKeyStoreDAOException e)
         {
             LOG.debug(e, e);
-            LOG.error(e);
+            LOG.warn(e);
+            try
+            {
+                keystoreDAO.createSchema();
+                keyStoreMetaData = KeyStoreMetaData.generate(password);
+                keystoreDAO.setMetaData(keyStoreMetaData);
+            }
+            catch (GeneralSecurityException | VRKeyStoreDAOException ee)
+            {
+                LOG.debug(ee, ee);
+                LOG.fatal(e);
+                throw new NoSuchAlgorithmException(ee);
+            }
         }
-        
+
         try
         {
-            keystoreDAO.createSchema();
-            keyStoreMetaData = KeyStoreMetaData.generate(password);
-            keystoreDAO.setMetaData(keyStoreMetaData);
             keyStoreMetaData.checkIntegrity(password);
         }
-        catch (VRKeyStoreDAOException | UnrecoverableKeyException e)
+        catch (UnrecoverableKeyException | InvalidKeySpecException e)
         {
+            LOG.debug(e, e);
             LOG.error(e, e);
             throw new IOException(e);
-        }
-        catch (GeneralSecurityException e)
-        {
-            LOG.error(e, e);
-            throw new NoSuchAlgorithmException(e);
         }
     }
 

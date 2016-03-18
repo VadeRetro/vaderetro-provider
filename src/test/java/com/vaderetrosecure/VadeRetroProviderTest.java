@@ -18,6 +18,7 @@ import java.util.Properties;
 import javax.net.ssl.SSLContext;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
@@ -39,6 +40,7 @@ public class VadeRetroProviderTest
         Security.addProvider(vrProvider);
     }
 
+    @Ignore
     @Test
     public void testGetKeystore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException
     {

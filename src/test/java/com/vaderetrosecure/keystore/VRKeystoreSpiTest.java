@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -74,8 +75,10 @@ public class VRKeystoreSpiTest
     }
 
     @Test(expected=IOException.class)
-    public void testLoadWrongPassword() throws KeyStoreException, NoSuchProviderException, NoSuchAlgorithmException, CertificateException, IOException
+    public void testLoadWrongPassword() throws IOException, VRKeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException
     {
+        when(ksdao.getMetaData()).thenThrow(new VRKeyStoreDAOException("")).thenReturn(KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray()));
+        keystore.engineLoad(null, MASTER_PASSWORD.toCharArray());
         keystore.engineLoad(null, "sfkghshiistgohstio".toCharArray());
     }
 
