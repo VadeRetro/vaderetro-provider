@@ -68,8 +68,8 @@ public class SqlVRKeyStoreDAOTest
         sqldao.setMetaData(ksemd);
         KeyStoreMetaData ksemdOut = sqldao.getMetaData();
         ksemdOut.checkIntegrity(MASTER_PASSWORD.toCharArray());
-        Assert.assertEquals(ksemd.getKeyIV(), ksemdOut.getKeyIV());
-        Assert.assertEquals(ksemd.getKeyIVHash(), ksemdOut.getKeyIVHash());
+        Assert.assertArrayEquals(ksemd.getKeyIV(), ksemdOut.getKeyIV());
+        Assert.assertArrayEquals(ksemd.getKeyIVHash(), ksemdOut.getKeyIVHash());
     }
 
     @Test
