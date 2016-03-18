@@ -27,19 +27,19 @@ public class KeyStoreEntry
         this("", KeyStoreEntryType.KEY, 0, Date.from(Instant.now()), "", null);
     }
 
-    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, String data)
+    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data)
     {
         this(alias, entryType, rank, creationDate, algorithm, data, new ArrayList<>());
     }
 
-    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, String data, List<CertificateName> certificateNames)
+    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data, List<CertificateName> certificateNames)
     {
         this.alias = alias;
         this.entryType = entryType;
         this.rank = rank;
         this.creationDate = creationDate;
         this.algorithm = algorithm;
-        this.data = data;
+        setData(data);
         this.certificateNames = certificateNames;
     }
 
@@ -93,14 +93,14 @@ public class KeyStoreEntry
         this.algorithm = algorithm;
     }
 
-    public String getData()
+    public byte[] getData()
     {
-        return data;
+        return CryptoTools.b64Decode(data);
     }
 
-    public void setData(String data)
+    public void setData(byte[] data)
     {
-        this.data = data;
+        this.data = CryptoTools.b64Encode(data);
     }
 
     public List<CertificateName> getCertificateNames()

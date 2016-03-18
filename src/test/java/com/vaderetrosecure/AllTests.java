@@ -9,6 +9,7 @@ import com.vaderetrosecure.keystore.dao.KeyStoreMetaDataTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+    VadeRetroProviderTest.class,
     KeyStoreMetaDataTest.class,
     VRKeystoreSpiTest.class
 })

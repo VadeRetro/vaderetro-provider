@@ -7,7 +7,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -27,9 +26,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -184,10 +180,9 @@ public class VRKeystoreSpi extends KeyStoreSpi
             
             List<Certificate> certChain = new ArrayList<>();
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            Decoder b64Dec = Base64.getDecoder();
             for (KeyStoreEntry kse : entries)
             {
-                try (InputStream is = new ByteArrayInputStream(b64Dec.decode(kse.getData().getBytes(StandardCharsets.US_ASCII))))
+                try (InputStream is = new ByteArrayInputStream(kse.getData()))
                 {
                     Certificate cert = cf.generateCertificate(is);
                     certChain.add(cert);
@@ -245,7 +240,6 @@ public class VRKeystoreSpi extends KeyStoreSpi
 				keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKey(password, key.getEncoded()))));
 			else
 			{
-			    Encoder b64Enc = Base64.getEncoder();
 				List<KeyStoreEntry> entries = new ArrayList<>();
 				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKey(password, key.getEncoded()), Collections.emptyList()));
 				if (chain != null)
@@ -255,7 +249,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 					    List<CertificateName> certNames = new ArrayList<>();
 					    for (String name : getCertificateNames(chain[i]))
 					        certNames.add(new CertificateName(name, alias, i));
-						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), new String(b64Enc.encode(chain[i].getEncoded()), StandardCharsets.US_ASCII), certNames));
+						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), certNames));
 					}
 				}
 				keystoreDAO.setKeyStoreEntries(entries);
@@ -275,11 +269,22 @@ public class VRKeystoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
-            Encoder b64Enc = Base64.getEncoder();
 			Date creationDate = Date.from(Instant.now());
-			keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.KEY, 0, creationDate, null, new String(b64Enc.encode(key), StandardCharsets.US_ASCII))));
+			List<KeyStoreEntry> entries = new ArrayList<>();
+			entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.KEY, 0, creationDate, null, key));
+            if (chain != null)
+            {
+                for (int i = 0 ; i < chain.length ; i++)
+                {
+                    List<CertificateName> certNames = new ArrayList<>();
+                    for (String name : getCertificateNames(chain[i]))
+                        certNames.add(new CertificateName(name, alias, i));
+                    entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), certNames));
+                }
+            }
+            keystoreDAO.setKeyStoreEntries(entries);
         }
-        catch (VRKeyStoreDAOException | IOException e)
+        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
         {
             LOG.error(e, e);
             throw new KeyStoreException(e);
@@ -293,12 +298,11 @@ public class VRKeystoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
-            Encoder b64Enc = Base64.getEncoder();
 			Date creationDate = Date.from(Instant.now());
 			List<CertificateName> certNames = new ArrayList<>();
 			for (String name : getCertificateNames(cert))
 			    certNames.add(new CertificateName(name, alias, 0));
-			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), new String(b64Enc.encode(cert.getEncoded()), StandardCharsets.US_ASCII), certNames);
+			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded(), certNames);
 			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
         }
         catch (VRKeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
