@@ -89,7 +89,14 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
             if (!rs.next())
                 return null;
 
-            return new KeyStoreMetaData(rs.getInt("major_version"), rs.getString("version"), rs.getString("salt"), rs.getString("iv"), rs.getString("key_iv"), rs.getString("key_iv_hash"));
+            KeyStoreMetaData ksmd = new KeyStoreMetaData();
+            ksmd.setMajorVersion(rs.getInt("major_version"));
+            ksmd.setVersion(rs.getString("version"));
+            ksmd.setSalt(EncodingTools.b64Decode(rs.getString("salt")));
+            ksmd.setIV(EncodingTools.b64Decode(rs.getString("iv")));
+            ksmd.setKeyIV(EncodingTools.b64Decode(rs.getString("key_iv")));
+            ksmd.setKeyIVHash(EncodingTools.hexStringDecode(rs.getString("key_iv_hash")));
+            return ksmd;
         }
         catch (SQLException e)
         {
@@ -221,10 +228,10 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
             {
                 ps.setInt(1, keyStoreMetaData.getMajorVersion());
                 ps.setString(2, keyStoreMetaData.getVersion());
-                ps.setString(3, keyStoreMetaData.getSalt());
-                ps.setString(4, keyStoreMetaData.getIV());
-                ps.setString(5, keyStoreMetaData.getKeyIV());
-                ps.setString(6, keyStoreMetaData.getKeyIVHash());
+                ps.setString(3, EncodingTools.b64Encode(keyStoreMetaData.getSalt()));
+                ps.setString(4, EncodingTools.b64Encode(keyStoreMetaData.getIV()));
+                ps.setString(5, EncodingTools.b64Encode(keyStoreMetaData.getKeyIV()));
+                ps.setString(6, EncodingTools.hexStringEncode(keyStoreMetaData.getKeyIVHash()));
                 ps.executeUpdate();
             }
 
@@ -259,7 +266,7 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
 	            	psIns.setInt(3, kse.getRank());
 	            	psIns.setLong(4, kse.getCreationDate().getTime());
 	            	psIns.setString(5, kse.getAlgorithm());
-	            	psIns.setString(6, kse.getData());
+	            	psIns.setString(6, EncodingTools.b64Encode(kse.getData()));
 	            	psIns.executeUpdate();
 	            }
             }
@@ -291,12 +298,13 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
     
     private KeyStoreEntry getKeyStoreEntryObject(ResultSet resultSet) throws SQLException
     {
-        String alias = resultSet.getString("alias");
-        KeyStoreEntryType entrytype = KeyStoreEntryType.values()[resultSet.getInt("entry_type")];
-        int rank = resultSet.getInt("rank");
-        Date creationDate = Date.from(Instant.ofEpochMilli(resultSet.getLong("creation_date")));
-        String algorithm = resultSet.getString("algorithm");
-        String data = resultSet.getString("data");
-        return new KeyStoreEntry(alias, entrytype, rank, creationDate, algorithm, data);
+        KeyStoreEntry kse = new KeyStoreEntry();
+        kse.setAlias(resultSet.getString("alias"));
+        kse.setEntryType(KeyStoreEntryType.values()[resultSet.getInt("entry_type")]);
+        kse.setRank(resultSet.getInt("rank"));
+        kse.setCreationDate(Date.from(Instant.ofEpochMilli(resultSet.getLong("creation_date"))));
+        kse.setAlgorithm(resultSet.getString("algorithm"));
+        kse.setData(EncodingTools.b64Decode(resultSet.getString("data")));
+        return kse;
     }
 }
