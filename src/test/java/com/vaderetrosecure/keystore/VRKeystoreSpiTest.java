@@ -67,7 +67,7 @@ public class VRKeystoreSpiTest
     @Test
     public void testGetInstanceFromVRProvider() throws KeyStoreException, NoSuchProviderException
     {
-        System.setProperty(VRKeyStoreDAOFactory.DAO_FACTORY_CLASS_PROPERTY_NAME, MockVRKeyStoreDAOFactory.class.getName());
+        System.setProperty(VRKeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
         Security.addProvider(new VadeRetroProvider());
         KeyStore ks = KeyStore.getInstance("VR");
         Assert.assertEquals("VR", ks.getProvider().getName());

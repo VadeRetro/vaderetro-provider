@@ -17,9 +17,9 @@ public abstract class VRKeyStoreDAOFactory
 {
     private static final Logger LOG = Logger.getLogger(VRKeyStoreDAOFactory.class);
 
-    public static final String DAO_FACTORY_CLASS_PROPERTY_NAME = "com.vaderetrosecure.keystore.dao.factory";
+    public static final String DAO_FACTORY_CLASS_NAME = "com.vaderetrosecure.keystore.dao.factory";
     
-    private static final String DAO_FACTORY_PROPERTIES_FILE_ENV_NAME = "com.vaderetrosecure.keystore.dao.properties";
+    private static final String DAO_FACTORY_PROPERTIES_FILE_NAME = "com.vaderetrosecure.keystore.dao.properties";
     private static VRKeyStoreDAOFactory INSTANCE = null;
     
     protected VRKeyStoreDAOFactory()
@@ -32,9 +32,9 @@ public abstract class VRKeyStoreDAOFactory
             return INSTANCE;
         
         // create instance of factory
-        String factoryClassStr = System.getProperty(DAO_FACTORY_CLASS_PROPERTY_NAME, VRKeyStoreDAOFactory.class.getName());
+        String factoryClassStr = System.getProperty(DAO_FACTORY_CLASS_NAME, VRKeyStoreDAOFactory.class.getName());
         if (factoryClassStr == null)
-            throw new VRKeyStoreDAOException("system property '" + DAO_FACTORY_CLASS_PROPERTY_NAME + "' not set");
+            throw new VRKeyStoreDAOException("system property '" + DAO_FACTORY_CLASS_NAME + "' not set");
 
         VRKeyStoreDAOFactory factory = null;
         try
@@ -58,12 +58,12 @@ public abstract class VRKeyStoreDAOFactory
     private static Properties loadProperties() throws VRKeyStoreDAOException
     {
         //  loading properties file
-        String propFile = System.getProperty(DAO_FACTORY_PROPERTIES_FILE_ENV_NAME, "com.vaderetrosecure.keystore.dao.properties");
+        String propFile = System.getProperty(DAO_FACTORY_PROPERTIES_FILE_NAME, "com.vaderetrosecure.keystore.dao.properties");
         Properties prop = new Properties();
         try (InputStream is = ClassLoader.getSystemResourceAsStream(propFile))
         {
             if (is == null)
-                LOG.warn("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_ENV_NAME + "' file");
+                LOG.warn("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_NAME + "' file");
             else
                 prop.load(is);
             return prop;
