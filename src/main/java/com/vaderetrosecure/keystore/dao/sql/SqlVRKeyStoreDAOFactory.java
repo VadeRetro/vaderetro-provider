@@ -16,19 +16,19 @@ import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
 
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOException;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOFactory;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
 
 /**
  * @author ahonore
  *
  */
-public class SqlVRKeyStoreDAOFactory extends VRKeyStoreDAOFactory
+public class SqlVRKeyStoreDAOFactory extends KeyStoreDAOFactory
 {
     private final static Logger LOG = Logger.getLogger(SqlVRKeyStoreDAOFactory.class);
     
-    private VRKeyStoreDAO keyStoreDAO;
+    private KeyStoreDAO keyStoreDAO;
     
     public SqlVRKeyStoreDAOFactory()
     {
@@ -36,7 +36,7 @@ public class SqlVRKeyStoreDAOFactory extends VRKeyStoreDAOFactory
     }
 
     @Override
-    protected void init(Properties properties) throws VRKeyStoreDAOException
+    protected void init(Properties properties) throws KeyStoreDAOException
     {
         try
         {
@@ -45,12 +45,12 @@ public class SqlVRKeyStoreDAOFactory extends VRKeyStoreDAOFactory
         catch (ClassNotFoundException e)
         {
             LOG.fatal(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public VRKeyStoreDAO getKeyStoreDAO() throws VRKeyStoreDAOException
+    public KeyStoreDAO getKeyStoreDAO() throws KeyStoreDAOException
     {
         return keyStoreDAO;
     }

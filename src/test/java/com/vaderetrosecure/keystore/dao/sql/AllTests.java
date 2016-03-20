@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-    SqlVRKeyStoreDAOTest.class 
+    SqlKeyStoreDAOTest.class 
 })
 public class AllTests
 {

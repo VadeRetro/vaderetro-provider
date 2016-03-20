@@ -23,14 +23,14 @@ import org.apache.log4j.Logger;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 
 /**
  * @author ahonore
  *
  */
-class SqlVRKeyStoreDAO implements VRKeyStoreDAO
+class SqlVRKeyStoreDAO implements KeyStoreDAO
 {
     private static final Logger LOG = Logger.getLogger(SqlVRKeyStoreDAO.class);
     private static final String KEYSTORE_ENTRIES_TABLE = "keystore_entries";
@@ -44,7 +44,7 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
     }
 
     @Override
-    public void createSchema() throws VRKeyStoreDAOException
+    public void createSchema() throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection())
         {
@@ -72,17 +72,17 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
         catch (IOException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public KeyStoreMetaData getMetaData() throws VRKeyStoreDAOException
+    public KeyStoreMetaData getMetaData() throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + KEYSTORE_METADATA_TABLE + " limit 1"); ResultSet rs = ps.executeQuery())
         {
@@ -101,12 +101,12 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public int countEntries() throws VRKeyStoreDAOException
+    public int countEntries() throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement("select distinct count(alias) from " + KEYSTORE_ENTRIES_TABLE);
@@ -120,12 +120,12 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public List<String> getAliases() throws VRKeyStoreDAOException
+    public List<String> getAliases() throws KeyStoreDAOException
     {
         List<String> aliases = new ArrayList<>();
         try (Connection conn = dataSource.getConnection(); 
@@ -140,12 +140,12 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public List<KeyStoreEntry> getKeyStoreEntry(String alias, KeyStoreEntryType keyStoreEntryType) throws VRKeyStoreDAOException
+    public List<KeyStoreEntry> getKeyStoreEntry(String alias, KeyStoreEntryType keyStoreEntryType) throws KeyStoreDAOException
     {
         List<KeyStoreEntry> entries = new ArrayList<>();
         try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + KEYSTORE_ENTRIES_TABLE + " where alias=? and entry_type=?"))
@@ -162,12 +162,12 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public List<KeyStoreEntry> getKeyStoreEntry(String alias) throws VRKeyStoreDAOException
+    public List<KeyStoreEntry> getKeyStoreEntry(String alias) throws KeyStoreDAOException
     {
         List<KeyStoreEntry> entries = new ArrayList<>();
         try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + KEYSTORE_ENTRIES_TABLE + " where alias=?"))
@@ -183,12 +183,12 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public Date engineGetCreationDate(String alias) throws VRKeyStoreDAOException
+    public Date engineGetCreationDate(String alias) throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select creation_date from " + KEYSTORE_ENTRIES_TABLE + " where alias=? limit 1"))
         {
@@ -205,12 +205,12 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public void setMetaData(KeyStoreMetaData keyStoreMetaData) throws VRKeyStoreDAOException
+    public void setMetaData(KeyStoreMetaData keyStoreMetaData) throws KeyStoreDAOException
     {
         // delete if exists then insert
         try (Connection conn = dataSource.getConnection())
@@ -241,12 +241,12 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public void setKeyStoreEntries(Collection<KeyStoreEntry> keyStoreEntries) throws VRKeyStoreDAOException
+    public void setKeyStoreEntries(Collection<KeyStoreEntry> keyStoreEntries) throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection())
         {
@@ -277,12 +277,12 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public void deleteKeyStoreEntry(String alias) throws VRKeyStoreDAOException
+    public void deleteKeyStoreEntry(String alias) throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("delete from " + KEYSTORE_ENTRIES_TABLE + " where alias=?"))
         {
@@ -292,7 +292,7 @@ class SqlVRKeyStoreDAO implements VRKeyStoreDAO
         catch (SQLException e)
         {
             LOG.error(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
     

@@ -24,19 +24,19 @@ import org.junit.Test;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 
 
 /**
  * @author ahonore
  *
  */
-public class SqlVRKeyStoreDAOTest
+public class SqlKeyStoreDAOTest
 {
     private static final String MASTER_PASSWORD = "master-password";
 
-    private VRKeyStoreDAO sqldao;
+    private KeyStoreDAO sqldao;
     private SecretKey secretKey;
 
     @Before
@@ -54,13 +54,13 @@ public class SqlVRKeyStoreDAOTest
     }
 
     @Test
-    public void testCreateSchema() throws VRKeyStoreDAOException
+    public void testCreateSchema() throws KeyStoreDAOException
     {
         sqldao.createSchema();
     }
 
     @Test
-    public void testStoreLoadMetaData() throws VRKeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException, IOException
+    public void testStoreLoadMetaData() throws KeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException, IOException
     {
         sqldao.createSchema();
         KeyStoreMetaData ksemd = KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray());
@@ -73,7 +73,7 @@ public class SqlVRKeyStoreDAOTest
     }
 
     @Test
-    public void testStoreLoadSecretKey() throws VRKeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException, IOException
+    public void testStoreLoadSecretKey() throws KeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException, IOException
     {
         final String keyPassword = "key-password";
         sqldao.createSchema();
