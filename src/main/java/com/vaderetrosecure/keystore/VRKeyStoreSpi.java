@@ -49,38 +49,38 @@ import com.vaderetrosecure.keystore.dao.CertificateName;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOException;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOFactory;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
 
 /**
  * @author ahonore
  *
  */
-public class VRKeystoreSpi extends KeyStoreSpi
+public class VRKeyStoreSpi extends KeyStoreSpi
 {
-    private final static Logger LOG = Logger.getLogger(VRKeystoreSpi.class);
+    private final static Logger LOG = Logger.getLogger(VRKeyStoreSpi.class);
 
-    private VRKeyStoreDAO keystoreDAO;
+    private KeyStoreDAO keystoreDAO;
     private KeyStoreMetaData keyStoreMetaData;
     
-    public VRKeystoreSpi()
+    public VRKeyStoreSpi()
     {
         keystoreDAO = null;
         keyStoreMetaData = null;
 
         try
         {
-            VRKeyStoreDAOFactory ksFactory = VRKeyStoreDAOFactory.getInstance();
+            KeyStoreDAOFactory ksFactory = KeyStoreDAOFactory.getInstance();
             keystoreDAO = ksFactory.getKeyStoreDAO();
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.fatal(e, e);
         }
     }
 
-    VRKeystoreSpi(VRKeyStoreDAO keystoreDAO)
+    VRKeyStoreSpi(KeyStoreDAO keystoreDAO)
     {
         this.keystoreDAO = keystoreDAO;
         keyStoreMetaData = null;
@@ -110,7 +110,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 
             return null;
 		}
-        catch (IOException | VRKeyStoreDAOException e)
+        catch (IOException | KeyStoreDAOException e)
         {
             LOG.error(e, e);
 		}
@@ -195,7 +195,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
             
             return certChain;
         }
-        catch (VRKeyStoreDAOException | CertificateException e)
+        catch (KeyStoreDAOException | CertificateException e)
         {
             LOG.error(e, e);
         }
@@ -216,7 +216,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
             
             return entries.get(0).getCreationDate();
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
@@ -255,7 +255,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 				keystoreDAO.setKeyStoreEntries(entries);
 			}
         }
-        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException | InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | CertificateParsingException | InvalidNameException e)
+        catch (KeyStoreDAOException | IOException | CertificateEncodingException | InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | CertificateParsingException | InvalidNameException e)
         {
             LOG.error(e, e);
             throw new KeyStoreException(e);
@@ -284,7 +284,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
             }
             keystoreDAO.setKeyStoreEntries(entries);
         }
-        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
+        catch (KeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
         {
             LOG.error(e, e);
             throw new KeyStoreException(e);
@@ -305,7 +305,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded(), certNames);
 			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
         }
-        catch (VRKeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
+        catch (KeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
         {
             LOG.error(e, e);
             throw new KeyStoreException(e);
@@ -321,7 +321,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 
 			keystoreDAO.deleteKeyStoreEntry(alias);
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
@@ -344,7 +344,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
             
             return Collections.enumeration(aliases);
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
@@ -365,7 +365,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 
 			return !keystoreDAO.getKeyStoreEntry(alias).isEmpty();
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
@@ -386,7 +386,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 
 			return keystoreDAO.countEntries();
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
@@ -409,7 +409,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
             		!keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY).isEmpty() ||
             		!keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.KEY).isEmpty();
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
@@ -430,7 +430,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
 
 			return !keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE).isEmpty();
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.error(e, e);
         }
@@ -481,7 +481,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
         {
             keyStoreMetaData = keystoreDAO.getMetaData();
         }
-        catch (VRKeyStoreDAOException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.debug(e, e);
             LOG.warn(e);
@@ -491,7 +491,7 @@ public class VRKeystoreSpi extends KeyStoreSpi
                 keyStoreMetaData = KeyStoreMetaData.generate(password);
                 keystoreDAO.setMetaData(keyStoreMetaData);
             }
-            catch (GeneralSecurityException | VRKeyStoreDAOException ee)
+            catch (GeneralSecurityException | KeyStoreDAOException ee)
             {
                 LOG.debug(ee, ee);
                 LOG.fatal(e);

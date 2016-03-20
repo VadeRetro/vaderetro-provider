@@ -22,9 +22,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOException;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOFactory;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
 
 /**
  * @author ahonore
@@ -44,7 +44,7 @@ public class VadeRetroProviderTest
     @Test
     public void testGetKeystore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException
     {
-        System.setProperty(VRKeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
+        System.setProperty(KeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
         KeyStore ks = KeyStore.getInstance(vrProvider.getName());
         ks.load(null, null);
     }
@@ -55,24 +55,24 @@ public class VadeRetroProviderTest
         SSLContext ctx = SSLContext.getInstance("TLS", vrProvider.getName());
     }
 
-    public static class MockVRKeyStoreDAOFactory extends VRKeyStoreDAOFactory
+    public static class MockVRKeyStoreDAOFactory extends KeyStoreDAOFactory
     {
         @Override
-        protected void init(Properties properties) throws VRKeyStoreDAOException
+        protected void init(Properties properties) throws KeyStoreDAOException
         {
         }
 
         @Override
-        public VRKeyStoreDAO getKeyStoreDAO() throws VRKeyStoreDAOException
+        public KeyStoreDAO getKeyStoreDAO() throws KeyStoreDAOException
         {
-            VRKeyStoreDAO ksdao = mock(VRKeyStoreDAO.class);
+            KeyStoreDAO ksdao = mock(KeyStoreDAO.class);
             try
             {
                 when(ksdao.getMetaData()).thenReturn(KeyStoreMetaData.generate(null));
             }
             catch (Exception e)
             {
-                throw new VRKeyStoreDAOException(e);
+                throw new KeyStoreDAOException(e);
             }
             return ksdao;
         }

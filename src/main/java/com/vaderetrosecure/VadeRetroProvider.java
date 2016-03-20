@@ -7,9 +7,9 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.Provider;
 
-import com.vaderetrosecure.keystore.VRKeystoreSpi;
+import com.vaderetrosecure.keystore.VRKeyStoreSpi;
 import com.vaderetrosecure.ssl.VRKeyManagerFactorySpi;
-import com.vaderetrosecure.ssl.VRSSLContextSpi;
+import com.vaderetrosecure.ssl.TLSSSLContextSpi;
 
 /**
  * @author ahonore
@@ -29,8 +29,8 @@ public class VadeRetroProvider extends Provider
             @Override
             public Object run()
             {
-                put("KeyStore.VR", VRKeystoreSpi.class.getName());
-                put("SSLContext.TLS", VRSSLContextSpi.class.getName());
+                put("KeyStore.VR", VRKeyStoreSpi.class.getName());
+                put("SSLContext.TLS", TLSSSLContextSpi.class.getName());
                 put("KeyManagerFactory.VR", VRKeyManagerFactorySpi.class.getName());
                 return null;
             }

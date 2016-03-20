@@ -37,21 +37,21 @@ import com.vaderetrosecure.VadeRetroProvider;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOException;
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAOFactory;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
 
 /**
  * @author ahonore
  *
  */
-public class VRKeystoreSpiTest
+public class VRKeyStoreSpiTest
 {
     private static final String MASTER_PASSWORD = "master-password";
 
     private SecretKey secretKey;
-    private VRKeystoreSpi keystore;
-    private VRKeyStoreDAO ksdao;
+    private VRKeyStoreSpi keystore;
+    private KeyStoreDAO ksdao;
     
     @Before
     public void setUp() throws Exception
@@ -59,25 +59,25 @@ public class VRKeystoreSpiTest
         secretKey = new SecretKeySpec("secret key".getBytes(StandardCharsets.US_ASCII), "AES");
         
         KeyStoreMetaData ksemd = KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray());
-        ksdao = mock(VRKeyStoreDAO.class);
+        ksdao = mock(KeyStoreDAO.class);
         when(ksdao.getMetaData()).thenReturn(ksemd);
         
-        keystore = new VRKeystoreSpi(ksdao);
+        keystore = new VRKeyStoreSpi(ksdao);
     }
 
     @Test
     public void testGetInstanceFromVRProvider() throws KeyStoreException, NoSuchProviderException
     {
-        System.setProperty(VRKeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
+        System.setProperty(KeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
         Security.addProvider(new VadeRetroProvider());
         KeyStore ks = KeyStore.getInstance("VR");
         Assert.assertEquals("VR", ks.getProvider().getName());
     }
 
     @Test(expected=IOException.class)
-    public void testLoadWrongPassword() throws IOException, VRKeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException
+    public void testLoadWrongPassword() throws IOException, KeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException
     {
-        when(ksdao.getMetaData()).thenThrow(new VRKeyStoreDAOException("")).thenReturn(KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray()));
+        when(ksdao.getMetaData()).thenThrow(new KeyStoreDAOException("")).thenReturn(KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray()));
         keystore.engineLoad(null, MASTER_PASSWORD.toCharArray());
         keystore.engineLoad(null, "sfkghshiistgohstio".toCharArray());
     }
@@ -89,14 +89,14 @@ public class VRKeystoreSpiTest
     }
 
     @Test(expected=UnrecoverableKeyException.class)
-    public void testStoreLoadSecretKeyWrongPassword() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, UnrecoverableKeyException, VRKeyStoreDAOException
+    public void testStoreLoadSecretKeyWrongPassword() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, UnrecoverableKeyException, KeyStoreDAOException
     {
         doAnswer(new Answer<Object>() {
             @SuppressWarnings("unchecked")
-            public Object answer(InvocationOnMock invocation) throws VRKeyStoreDAOException {
+            public Object answer(InvocationOnMock invocation) throws KeyStoreDAOException {
                 Object[] args = invocation.getArguments();
                 KeyStoreEntry kse = ((Collection<KeyStoreEntry>) args[0]).toArray(new KeyStoreEntry[]{})[0];
-                VRKeyStoreDAO mock = (VRKeyStoreDAO) invocation.getMock();
+                KeyStoreDAO mock = (KeyStoreDAO) invocation.getMock();
                 when(mock.getKeyStoreEntry(eq("key-alias"), eq(KeyStoreEntryType.SECRET_KEY))).thenReturn(Collections.singletonList(kse));
                 return null;
             }})
@@ -108,14 +108,14 @@ public class VRKeystoreSpiTest
     }
 
     @Test
-    public void testStoreLoadSecretKeyRightPassword() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, UnrecoverableKeyException, VRKeyStoreDAOException
+    public void testStoreLoadSecretKeyRightPassword() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, UnrecoverableKeyException, KeyStoreDAOException
     {
         doAnswer(new Answer<Object>() {
             @SuppressWarnings("unchecked")
-            public Object answer(InvocationOnMock invocation) throws VRKeyStoreDAOException {
+            public Object answer(InvocationOnMock invocation) throws KeyStoreDAOException {
                 Object[] args = invocation.getArguments();
                 KeyStoreEntry kse = ((Collection<KeyStoreEntry>) args[0]).toArray(new KeyStoreEntry[]{})[0];
-                VRKeyStoreDAO mock = (VRKeyStoreDAO) invocation.getMock();
+                KeyStoreDAO mock = (KeyStoreDAO) invocation.getMock();
                 when(mock.getKeyStoreEntry(eq("key-alias"), eq(KeyStoreEntryType.SECRET_KEY))).thenReturn(Collections.singletonList(kse));
                 return null;
             }})
@@ -128,14 +128,14 @@ public class VRKeystoreSpiTest
     }
 
     @Test
-    public void testStoreLoadCertificate() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, UnrecoverableKeyException, VRKeyStoreDAOException
+    public void testStoreLoadCertificate() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, UnrecoverableKeyException, KeyStoreDAOException
     {
         doAnswer(new Answer<Object>() {
             @SuppressWarnings("unchecked")
-            public Object answer(InvocationOnMock invocation) throws VRKeyStoreDAOException {
+            public Object answer(InvocationOnMock invocation) throws KeyStoreDAOException {
                 Object[] args = invocation.getArguments();
                 KeyStoreEntry kse = ((Collection<KeyStoreEntry>) args[0]).toArray(new KeyStoreEntry[]{})[0];
-                VRKeyStoreDAO mock = (VRKeyStoreDAO) invocation.getMock();
+                KeyStoreDAO mock = (KeyStoreDAO) invocation.getMock();
                 when(mock.getKeyStoreEntry(eq("key-alias"), eq(KeyStoreEntryType.SECRET_KEY))).thenReturn(Collections.singletonList(kse));
                 return null;
             }})
@@ -147,15 +147,15 @@ public class VRKeystoreSpiTest
         Assert.assertArrayEquals(secretKey.getEncoded(), k.getEncoded());
     }
     
-    public static class MockVRKeyStoreDAOFactory extends VRKeyStoreDAOFactory
+    public static class MockVRKeyStoreDAOFactory extends KeyStoreDAOFactory
     {
         @Override
-        protected void init(Properties properties) throws VRKeyStoreDAOException
+        protected void init(Properties properties) throws KeyStoreDAOException
         {
         }
 
         @Override
-        public VRKeyStoreDAO getKeyStoreDAO() throws VRKeyStoreDAOException
+        public KeyStoreDAO getKeyStoreDAO() throws KeyStoreDAOException
         {
             return null;
         }

@@ -7,7 +7,7 @@ import javax.net.ssl.SNIMatcher;
 import javax.net.ssl.SNIServerName;
 import javax.net.ssl.StandardConstants;
 
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 
 /**
  * @author ahonore
@@ -15,9 +15,9 @@ import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
  */
 class VRSNIMatcher extends SNIMatcher
 {
-    private final VRKeyStoreDAO keyStoreDAO;
+    private final KeyStoreDAO keyStoreDAO;
 
-    VRSNIMatcher(VRKeyStoreDAO keyStoreDAO)
+    VRSNIMatcher(KeyStoreDAO keyStoreDAO)
     {
         super(StandardConstants.SNI_HOST_NAME);
         this.keyStoreDAO = keyStoreDAO;

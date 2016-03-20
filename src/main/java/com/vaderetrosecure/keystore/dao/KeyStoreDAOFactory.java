@@ -13,34 +13,34 @@ import org.apache.log4j.Logger;
  * @author ahonore
  *
  */
-public abstract class VRKeyStoreDAOFactory
+public abstract class KeyStoreDAOFactory
 {
-    private static final Logger LOG = Logger.getLogger(VRKeyStoreDAOFactory.class);
+    private static final Logger LOG = Logger.getLogger(KeyStoreDAOFactory.class);
 
     public static final String DAO_FACTORY_CLASS_NAME = "com.vaderetrosecure.keystore.dao.factory";
     
     private static final String DAO_FACTORY_PROPERTIES_FILE_NAME = "com.vaderetrosecure.keystore.dao.properties";
-    private static VRKeyStoreDAOFactory INSTANCE = null;
+    private static KeyStoreDAOFactory INSTANCE = null;
     
-    protected VRKeyStoreDAOFactory()
+    protected KeyStoreDAOFactory()
     {
     }
     
-    public static VRKeyStoreDAOFactory getInstance() throws VRKeyStoreDAOException
+    public static KeyStoreDAOFactory getInstance() throws KeyStoreDAOException
     {
         if (INSTANCE != null)
             return INSTANCE;
         
         // create instance of factory
-        String factoryClassStr = System.getProperty(DAO_FACTORY_CLASS_NAME, VRKeyStoreDAOFactory.class.getName());
+        String factoryClassStr = System.getProperty(DAO_FACTORY_CLASS_NAME, KeyStoreDAOFactory.class.getName());
         if (factoryClassStr == null)
-            throw new VRKeyStoreDAOException("system property '" + DAO_FACTORY_CLASS_NAME + "' not set");
+            throw new KeyStoreDAOException("system property '" + DAO_FACTORY_CLASS_NAME + "' not set");
 
-        VRKeyStoreDAOFactory factory = null;
+        KeyStoreDAOFactory factory = null;
         try
         {
             @SuppressWarnings("unchecked")
-            Class<VRKeyStoreDAOFactory> cl = (Class<VRKeyStoreDAOFactory>) Class.forName(factoryClassStr);
+            Class<KeyStoreDAOFactory> cl = (Class<KeyStoreDAOFactory>) Class.forName(factoryClassStr);
             factory = cl.newInstance();
             Properties prop = loadProperties();
             factory.init(prop);
@@ -48,14 +48,14 @@ public abstract class VRKeyStoreDAOFactory
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException e)
         {
             LOG.fatal(e, e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
         
         INSTANCE = factory;
         return INSTANCE;
     }
     
-    private static Properties loadProperties() throws VRKeyStoreDAOException
+    private static Properties loadProperties() throws KeyStoreDAOException
     {
         //  loading properties file
         String propFile = System.getProperty(DAO_FACTORY_PROPERTIES_FILE_NAME, "com.vaderetrosecure.keystore.dao.properties");
@@ -71,11 +71,11 @@ public abstract class VRKeyStoreDAOFactory
         catch (IOException e)
         {
             LOG.warn(e);
-            throw new VRKeyStoreDAOException(e);
+            throw new KeyStoreDAOException(e);
         }
     }
     
-    protected abstract void init(Properties properties) throws VRKeyStoreDAOException;
+    protected abstract void init(Properties properties) throws KeyStoreDAOException;
     
-    public abstract VRKeyStoreDAO getKeyStoreDAO() throws VRKeyStoreDAOException;
+    public abstract KeyStoreDAO getKeyStoreDAO() throws KeyStoreDAOException;
 }

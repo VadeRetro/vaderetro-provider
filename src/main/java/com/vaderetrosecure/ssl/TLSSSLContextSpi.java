@@ -27,13 +27,13 @@ import org.apache.log4j.Logger;
  * @author ahonore
  *
  */
-public class VRSSLContextSpi extends SSLContextSpi
+public class TLSSSLContextSpi extends SSLContextSpi
 {
-    private static final Logger LOG = Logger.getLogger(VRSSLContextSpi.class);
+    private static final Logger LOG = Logger.getLogger(TLSSSLContextSpi.class);
 
     private SSLContext delegate;
 
-    public VRSSLContextSpi()
+    public TLSSSLContextSpi()
     {
         try
         {
@@ -41,6 +41,8 @@ public class VRSSLContextSpi extends SSLContextSpi
         }
         catch (NoSuchAlgorithmException e)
         {
+        	LOG.fatal(e, e);
+        	throw new IllegalStateException(e);
         }
     }
     

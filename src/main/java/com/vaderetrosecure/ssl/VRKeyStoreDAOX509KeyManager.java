@@ -13,7 +13,7 @@ import javax.net.ssl.X509ExtendedKeyManager;
 
 import org.apache.log4j.Logger;
 
-import com.vaderetrosecure.keystore.dao.VRKeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 
 /**
  * @author ahonore
@@ -23,11 +23,11 @@ public class VRKeyStoreDAOX509KeyManager extends VRSNIX509ExtendedKeyManager
 {
     private static final Logger LOG = Logger.getLogger(VRKeyStoreDAOX509KeyManager.class);
 
-    private final VRKeyStoreDAO keyStoreDAO;
+    private final KeyStoreDAO keyStoreDAO;
     private VRSNIMatcher sniMatcher;
     private X509ExtendedKeyManager keyManager;
     
-    public VRKeyStoreDAOX509KeyManager(VRKeyStoreDAO keyStoreDAO)
+    public VRKeyStoreDAOX509KeyManager(KeyStoreDAO keyStoreDAO)
     {
         this.keyStoreDAO = keyStoreDAO;
         sniMatcher = null;
