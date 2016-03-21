@@ -60,7 +60,8 @@ public abstract class KeyStoreDAOFactory
         //  loading properties file
         String propFile = System.getProperty(DAO_FACTORY_PROPERTIES_FILE_NAME, "com.vaderetrosecure.keystore.dao.properties");
         Properties prop = new Properties();
-        try (InputStream is = ClassLoader.getSystemResourceAsStream(propFile))
+        Thread.currentThread().getContextClassLoader().getResource("com.vaderetrosecure.keystore.dao.properties");
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(propFile))
         {
             if (is == null)
                 LOG.warn("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_NAME + "' file");
