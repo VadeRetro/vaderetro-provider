@@ -24,13 +24,13 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
  * @author ahonore
  *
  */
-public class SqlVRKeyStoreDAOFactory extends KeyStoreDAOFactory
+public class SqlKeyStoreDAOFactory extends KeyStoreDAOFactory
 {
-    private final static Logger LOG = Logger.getLogger(SqlVRKeyStoreDAOFactory.class);
+    private final static Logger LOG = Logger.getLogger(SqlKeyStoreDAOFactory.class);
     
     private KeyStoreDAO keyStoreDAO;
     
-    public SqlVRKeyStoreDAOFactory()
+    public SqlKeyStoreDAOFactory()
     {
         keyStoreDAO = null;
     }
@@ -40,7 +40,7 @@ public class SqlVRKeyStoreDAOFactory extends KeyStoreDAOFactory
     {
         try
         {
-            keyStoreDAO = new SqlVRKeyStoreDAO(createDataSource(properties));
+            keyStoreDAO = new SqlKeyStoreDAO(createDataSource(properties));
         }
         catch (ClassNotFoundException e)
         {

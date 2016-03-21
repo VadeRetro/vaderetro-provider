@@ -4,16 +4,43 @@
 package com.vaderetrosecure.keystore.dao.sql;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.bind.DatatypeConverter;
+
+import org.apache.log4j.Logger;
 
 /**
  * @author ahonore
  *
  */
-class EncodingTools
+final class EncodingTools
 {
+    private final static Logger LOG = Logger.getLogger(EncodingTools.class);
+
+    private static final Lock LOCK = new ReentrantLock();
+    private static MessageDigest SHA2_DIGEST;
+    static
+    {
+        try
+        {
+            SHA2_DIGEST = MessageDigest.getInstance("SHA-256");
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            LOG.debug(e, e);
+            LOG.fatal(e);
+        }
+    }
+    
+    private EncodingTools()
+    {
+    }
+    
     public static String b64Encode(byte[] data)
     {
         if (data == null)
@@ -44,5 +71,18 @@ class EncodingTools
             return "".getBytes(StandardCharsets.US_ASCII);
         
         return DatatypeConverter.parseHexBinary(data);
+    }
+    
+    public static String toSHA2(String data)
+    {
+        LOCK.lock();
+        try
+        {
+            return DatatypeConverter.printHexBinary(SHA2_DIGEST.digest(data.getBytes(StandardCharsets.UTF_8))).toLowerCase();
+        }
+        finally
+        {
+            LOCK.unlock();
+        }
     }
 }
