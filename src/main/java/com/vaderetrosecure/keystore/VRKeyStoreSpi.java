@@ -241,7 +241,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 			else
 			{
 				List<KeyStoreEntry> entries = new ArrayList<>();
-				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKeyEntry(null, key.getEncoded()), Collections.emptyList()));
+				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKeyEntry(null, key.getEncoded())));
 				if (chain != null)
 				{
 					for (int i = 0 ; i < chain.length ; i++)
@@ -249,7 +249,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 					    List<CertificateName> certNames = new ArrayList<>();
 					    for (String name : getCertificateNames(chain[i]))
 					        certNames.add(new CertificateName(alias, i, name));
-						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), certNames));
+						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded()));
 					}
 				}
 				keystoreDAO.setKeyStoreEntries(entries);
@@ -279,7 +279,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
                     List<CertificateName> certNames = new ArrayList<>();
                     for (String name : getCertificateNames(chain[i]))
                         certNames.add(new CertificateName(alias, i, name));
-                    entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), certNames));
+                    entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded()));
                 }
             }
             keystoreDAO.setKeyStoreEntries(entries);
@@ -302,7 +302,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 			List<CertificateName> certNames = new ArrayList<>();
 			for (String name : getCertificateNames(cert))
 			    certNames.add(new CertificateName(alias, 0, name));
-			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded(), certNames);
+			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded());
 			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
         }
         catch (KeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
