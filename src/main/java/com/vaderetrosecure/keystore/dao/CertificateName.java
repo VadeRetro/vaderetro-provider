@@ -9,24 +9,14 @@ package com.vaderetrosecure.keystore.dao;
  */
 public class CertificateName
 {
-    private String name;
     private String alias;
     private int rank;
+    private String name;
 
-    public CertificateName(String name, String alias, int rank)
+    public CertificateName(String alias, int rank, String name)
     {
-        this.name = name;
         this.alias = alias;
         this.rank = rank;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
         this.name = name;
     }
 
@@ -48,5 +38,15 @@ public class CertificateName
     public void setRank(int rank)
     {
         this.rank = rank;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
     }
 }

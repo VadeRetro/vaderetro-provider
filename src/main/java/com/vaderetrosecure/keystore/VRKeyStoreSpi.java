@@ -248,7 +248,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 					{
 					    List<CertificateName> certNames = new ArrayList<>();
 					    for (String name : getCertificateNames(chain[i]))
-					        certNames.add(new CertificateName(name, alias, i));
+					        certNames.add(new CertificateName(alias, i, name));
 						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), certNames));
 					}
 				}
@@ -278,7 +278,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
                 {
                     List<CertificateName> certNames = new ArrayList<>();
                     for (String name : getCertificateNames(chain[i]))
-                        certNames.add(new CertificateName(name, alias, i));
+                        certNames.add(new CertificateName(alias, i, name));
                     entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), certNames));
                 }
             }
@@ -301,7 +301,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 			Date creationDate = Date.from(Instant.now());
 			List<CertificateName> certNames = new ArrayList<>();
 			for (String name : getCertificateNames(cert))
-			    certNames.add(new CertificateName(name, alias, 0));
+			    certNames.add(new CertificateName(alias, 0, name));
 			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded(), certNames);
 			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
         }
