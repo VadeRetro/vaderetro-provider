@@ -38,21 +38,21 @@ final class CipheringTools
     
     public static byte[] cipherData(byte[] rawData, SecretKey aesSecretKey, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
-        // 10 bytes of salt will be added at the beginning of the key
-        byte[] keySalt = new byte[10];
+        // 16 bytes of salt will be added at the beginning of the key
+        byte[] dataSalt = new byte[16];
         LOCK.lock();
         try
         {
-            RANDOM.nextBytes(keySalt);
+            RANDOM.nextBytes(dataSalt);
         }
         finally
         {
             LOCK.unlock();
         }
         
-        byte[] cipherKey = new byte[keySalt.length + rawData.length];
-        System.arraycopy(keySalt, 0, cipherKey, 0, keySalt.length);
-        System.arraycopy(rawData, 0, cipherKey, keySalt.length, rawData.length);
+        byte[] cipherKey = new byte[dataSalt.length + rawData.length];
+        System.arraycopy(dataSalt, 0, cipherKey, 0, dataSalt.length);
+        System.arraycopy(rawData, 0, cipherKey, dataSalt.length, rawData.length);
         
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, aesSecretKey, new IvParameterSpec(iv));
@@ -61,11 +61,11 @@ final class CipheringTools
     
     public static byte[] decipherData(byte[] cipheredData, SecretKey aesSecretKey, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
-        // 10 bytes of salt will be removed from the beginning of the key
+        // 16 bytes of salt will be removed from the beginning of the key
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, aesSecretKey, new IvParameterSpec(iv));
-        byte[] saltedKey = cipher.doFinal(cipheredData);
-        return Arrays.copyOfRange(saltedKey, 10, saltedKey.length);
+        byte[] saltedData = cipher.doFinal(cipheredData);
+        return Arrays.copyOfRange(saltedData, 16, saltedData.length);
     }
 
     public static SecretKey getAESSecretKey(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException
