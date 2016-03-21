@@ -98,14 +98,14 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 			{
 			    KeyStoreEntry kse = entries.get(0);
 			    KeyFactory kf = KeyFactory.getInstance(kse.getAlgorithm());
-			    return kf.generatePrivate(new PKCS8EncodedKeySpec(keyStoreMetaData.decipherKey(password, kse.getData())));
+			    return kf.generatePrivate(new PKCS8EncodedKeySpec(keyStoreMetaData.decipherData(password, kse.getData())));
 			}
 			
             entries = keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY);
             if (!entries.isEmpty())
             {
                 KeyStoreEntry kse = entries.get(0);
-                return new SecretKeySpec(keyStoreMetaData.decipherKey(password, kse.getData()), kse.getAlgorithm());
+                return new SecretKeySpec(keyStoreMetaData.decipherData(password, kse.getData()), kse.getAlgorithm());
             }
 
             return null;
@@ -237,11 +237,11 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 
 			Date creationDate = Date.from(Instant.now());
 			if (SecretKey.class.isInstance(key))
-				keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKey(password, key.getEncoded()))));
+				keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherData(password, key.getEncoded()))));
 			else
 			{
 				List<KeyStoreEntry> entries = new ArrayList<>();
-				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKey(password, key.getEncoded()), Collections.emptyList()));
+				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherData(password, key.getEncoded()), Collections.emptyList()));
 				if (chain != null)
 				{
 					for (int i = 0 ; i < chain.length ; i++)
