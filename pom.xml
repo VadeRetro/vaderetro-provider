@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.vaderetrosecure</groupId>
 	<artifactId>ssl-provider</artifactId>
-	<version>0.1.6-SNAPSHOT</version>
+	<version>0.1.7-SNAPSHOT</version>
 	<description>Vade Retro SSL provider</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -107,15 +107,24 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.15</version>
 				<configuration>
-				<systemPropertyVariables>
-				<com.vaderetrosecure.keystore.dao.factory>com.vaderetrosecure.VadeRetroProviderTest$MockVRKeyStoreDAOFactory</com.vaderetrosecure.keystore.dao.factory>
-				</systemPropertyVariables>
 					<!-- Sets the VM argument line used when unit tests are run. -->
-					<argLine>${surefireArgLine}</argLine>
+					<argLine>-Dcom.vaderetrosecure.keystore.dao.factory=com.vaderetrosecure.VadeRetroProviderTest$MockVRKeyStoreDAOFactory ${surefireArgLine}</argLine>
 					<excludes>
 						<exclude>it/**</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<!-- javadoc -->
 			<plugin>
