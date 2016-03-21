@@ -484,7 +484,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         catch (KeyStoreDAOException e)
         {
             LOG.debug(e, e);
-            LOG.warn(e);
+            LOG.info(e);
             try
             {
                 keystoreDAO.createSchema();
