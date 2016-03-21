@@ -6,9 +6,12 @@ package com.vaderetrosecure.keystore.dao;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -26,34 +29,41 @@ import javax.crypto.spec.SecretKeySpec;
  */
 final class CipheringTools
 {
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final Lock LOCK = new ReentrantLock();
+    
     private CipheringTools()
     {
     }
     
-    public static byte[] cipherData(SecretKey aesSecretKey, byte[] iv, byte[] rawData) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    public static byte[] cipherData(byte[] rawData, SecretKey aesSecretKey, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         // 10 bytes of salt will be added at the beginning of the key
         byte[] keySalt = new byte[10];
-        random.nextBytes(keySalt);
+        LOCK.lock();
+        try
+        {
+            RANDOM.nextBytes(keySalt);
+        }
+        finally
+        {
+            LOCK.unlock();
+        }
         
         byte[] cipherKey = new byte[keySalt.length + rawData.length];
         System.arraycopy(keySalt, 0, cipherKey, 0, keySalt.length);
         System.arraycopy(rawData, 0, cipherKey, keySalt.length, rawData.length);
         
-        SecretKey secret = getAESSecretKey(keyPassword, getSalt());
-        byte[] rawKeyIV = getDecipheredKeyIV();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
+        cipher.init(Cipher.ENCRYPT_MODE, aesSecretKey, new IvParameterSpec(iv));
         return cipher.doFinal(cipherKey);
     }
     
-    public byte[] decipherData(SecretKey aesSecretKey, byte[] iv, byte[] cipheredData) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    public static byte[] decipherData(byte[] cipheredData, SecretKey aesSecretKey, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         // 10 bytes of salt will be removed from the beginning of the key
-        SecretKey secret = getAESSecretKey(keyPassword, getSalt());
-        byte[] rawKeyIV = getDecipheredKeyIV();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(rawKeyIV));
+        cipher.init(Cipher.DECRYPT_MODE, aesSecretKey, new IvParameterSpec(iv));
         byte[] saltedKey = cipher.doFinal(cipheredData);
         return Arrays.copyOfRange(saltedKey, 10, saltedKey.length);
     }
