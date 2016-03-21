@@ -13,6 +13,11 @@ public class CertificateName
     private int rank;
     private String name;
 
+    public CertificateName()
+    {
+        this("", 0, "");
+    }
+
     public CertificateName(String alias, int rank, String name)
     {
         this.alias = alias;

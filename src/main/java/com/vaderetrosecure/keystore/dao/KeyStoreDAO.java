@@ -27,6 +27,7 @@ public interface KeyStoreDAO
     List<KeyStoreEntry> getKeyStoreEntry(String alias, KeyStoreEntryType keyStoreEntryType) throws KeyStoreDAOException;
     List<KeyStoreEntry> getKeyStoreEntry(String alias) throws KeyStoreDAOException;
     Date engineGetCreationDate(String alias) throws KeyStoreDAOException;
+    String getAliasFromHostname(String hostname) throws KeyStoreDAOException;
     
     void setMetaData(KeyStoreMetaData keyStoreMetaData) throws KeyStoreDAOException;
     void setKeyStoreEntries(Collection<KeyStoreEntry> keyStoreEntries) throws KeyStoreDAOException;

@@ -19,7 +19,7 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
  * @author ahonore
  *
  */
-public class VRKeyStoreDAOX509KeyManager extends VRSNIX509ExtendedKeyManager
+public class VRKeyStoreDAOX509KeyManager extends SNIX509ExtendedKeyManager
 {
     private static final Logger LOG = Logger.getLogger(VRKeyStoreDAOX509KeyManager.class);
 
