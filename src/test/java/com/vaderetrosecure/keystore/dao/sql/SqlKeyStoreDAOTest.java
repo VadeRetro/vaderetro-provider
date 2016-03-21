@@ -80,12 +80,12 @@ public class SqlKeyStoreDAOTest
         KeyStoreMetaData ksemd = KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray());
         ksemd.checkIntegrity(MASTER_PASSWORD.toCharArray());
         sqldao.setMetaData(ksemd);
-        KeyStoreEntry kse = new KeyStoreEntry("key-alias", KeyStoreEntryType.SECRET_KEY, 0, Date.from(Instant.now()), secretKey.getAlgorithm(), ksemd.cipherKey(keyPassword.toCharArray(), secretKey.getEncoded()));
+        KeyStoreEntry kse = new KeyStoreEntry("key-alias", KeyStoreEntryType.SECRET_KEY, 0, Date.from(Instant.now()), secretKey.getAlgorithm(), ksemd.cipherKeyEntry(keyPassword.toCharArray(), secretKey.getEncoded()));
         sqldao.setKeyStoreEntries(Collections.singletonList(kse));
         List<KeyStoreEntry> entries = sqldao.getKeyStoreEntry("key-alias");
         Assert.assertEquals(1, entries.size());
         KeyStoreEntry kseOut = entries.get(0);
-        SecretKey skOut = new SecretKeySpec(ksemd.decipherKey(keyPassword.toCharArray(), kseOut.getData()), kseOut.getAlgorithm());
+        SecretKey skOut = new SecretKeySpec(ksemd.decipherKeyEntry(keyPassword.toCharArray(), kseOut.getData()), kseOut.getAlgorithm());
         Assert.assertArrayEquals(secretKey.getEncoded(), skOut.getEncoded());
     }
 }
