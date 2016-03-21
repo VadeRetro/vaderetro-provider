@@ -21,10 +21,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
+import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
 
 /**
  * @author ahonore
@@ -52,7 +52,7 @@ public class VadeRetroProviderTest
     @Test
     public void testGetSSLContext() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, NoSuchProviderException
     {
-        SSLContext ctx = SSLContext.getInstance("TLS", vrProvider.getName());
+        SSLContext.getInstance("TLS", vrProvider.getName());
     }
 
     public static class MockVRKeyStoreDAOFactory extends KeyStoreDAOFactory
