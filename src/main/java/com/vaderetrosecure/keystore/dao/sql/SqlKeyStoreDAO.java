@@ -279,7 +279,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
                 deleteKeyStoreEntries(conn, kse.getAlias());
                 deleteCertificateNames(conn, kse.getAlias());
 
-                try (PreparedStatement psIns = conn.prepareStatement("insert into " + KEYSTORE_ENTRIES_TABLE + " (alias_hash,alias,entry_type,rank,creation_date,algorithm,data) value(?,?,?,?,?,?)"))
+                try (PreparedStatement psIns = conn.prepareStatement("insert into " + KEYSTORE_ENTRIES_TABLE + " (alias_hash,alias,entry_type,rank,creation_date,algorithm,data) value(?,?,?,?,?,?,?)"))
                 {
                     psIns.setString(1, EncodingTools.toSHA2(kse.getAlias()));
                     psIns.setString(2, kse.getAlias());
