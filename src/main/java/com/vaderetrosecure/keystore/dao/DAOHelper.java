@@ -50,7 +50,12 @@ public final class DAOHelper
 		{
 			return kf.generatePrivate(new PKCS8EncodedKeySpec(keyStoreMetaData.decipherKeyEntry(null, kse.getData())));
 		}
-		catch (InvalidKeyException | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e)
+        catch (InvalidAlgorithmParameterException e)
+        {
+            LOG.error(e, e);
+            throw new NoSuchAlgorithmException(e);
+        }
+		catch (InvalidKeyException | InvalidKeySpecException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e)
 		{
 			LOG.error(e, e);
 			throw new KeyStoreDAOException(e);
