@@ -45,6 +45,11 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         this.masterPassword = masterPassword;
     }
 
+    KeyStoreDAO getKeyStoreDAO()
+    {
+        return keyStoreDAO;
+    }
+    
     @Override
     public String chooseEngineClientAlias(String[] keyType, Principal[] issuers, SSLEngine engine)
     {

@@ -6,7 +6,9 @@ package com.vaderetrosecure.ssl;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SNIMatcher;
@@ -23,6 +25,8 @@ import javax.net.ssl.TrustManager;
 
 import org.apache.log4j.Logger;
 
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+
 /**
  * @author ahonore
  *
@@ -32,9 +36,12 @@ public class TLSSSLContextSpi extends SSLContextSpi
     private static final Logger LOG = Logger.getLogger(TLSSSLContextSpi.class);
 
     private SSLContext delegate;
+    private List<SNIMatcher> sniMatchers;
 
     public TLSSSLContextSpi()
     {
+        sniMatchers = new ArrayList<>();
+
         try
         {
             this.delegate = SSLContext.getInstance("TLS");
@@ -51,14 +58,8 @@ public class TLSSSLContextSpi extends SSLContextSpi
     {
         SSLEngine sslEngine = delegate.createSSLEngine();
         SSLParameters sslParams = sslEngine.getSSLParameters();
-        sslParams.setSNIMatchers(Collections.singleton(new SNIMatcher(StandardConstants.SNI_HOST_NAME)
-        {
-            @Override
-            public boolean matches(SNIServerName serverName)
-            {
-                return true;
-            }
-        }));
+        if (!sniMatchers.isEmpty())
+            sslParams.setSNIMatchers(sniMatchers);
         sslEngine.setSSLParameters(sslParams);
         return sslEngine;
     }
@@ -68,15 +69,8 @@ public class TLSSSLContextSpi extends SSLContextSpi
     {
         SSLEngine sslEngine = delegate.createSSLEngine(peerHost, peerPort);
         SSLParameters sslParams = sslEngine.getSSLParameters();
-        sslParams.setSNIMatchers(Collections.singleton(new SNIMatcher(StandardConstants.SNI_HOST_NAME)
-        {
-            
-            @Override
-            public boolean matches(SNIServerName serverName)
-            {
-                return true;
-            }
-        }));
+        if (!sniMatchers.isEmpty())
+            sslParams.setSNIMatchers(sniMatchers);
         LOG.debug("CIPHER SUITES: " + String.join(",", sslParams.getCipherSuites()));
         sslEngine.setSSLParameters(sslParams);
         return sslEngine;
@@ -109,6 +103,10 @@ public class TLSSSLContextSpi extends SSLContextSpi
     @Override
     protected void engineInit(KeyManager[] km, TrustManager[] tm, SecureRandom random) throws KeyManagementException
     {
+        for (KeyManager k : km)
+            if (SNIX509ExtendedKeyManager.class.isInstance(k))
+                sniMatchers.add(new VRSNIMatcher(((SNIX509ExtendedKeyManager) k).getKeyStoreDAO()));
+
         delegate.init(km, tm, random);
     }
 }
