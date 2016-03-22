@@ -14,13 +14,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
-import com.vaderetrosecure.keystore.dao.CertificateName;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
@@ -36,7 +37,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     private static final Logger LOG = Logger.getLogger(SqlKeyStoreDAO.class);
     private static final String KEYSTORE_ENTRIES_TABLE = "keystore_entries";
     private static final String KEYSTORE_METADATA_TABLE = "keystore_metadata";
-    private static final String KEYSTORE_HOSTNAMES_TABLE = "keystore_hostnames";
+    private static final String KEYSTORE_NAMES_TABLE = "keystore_names";
 
     private DataSource dataSource;
 
@@ -208,11 +209,11 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     }
 
     @Override
-    public String getAliasFromHostname(String hostname) throws KeyStoreDAOException
+    public String getAliasFromCertificateName(String certificateName) throws KeyStoreDAOException
     {
-        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select alias from " + KEYSTORE_HOSTNAMES_TABLE + " where hostname_hash=? and rank=? limit 1"))
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select alias from " + KEYSTORE_NAMES_TABLE + " where hostname_hash=? and rank=? limit 1"))
         {
-            ps.setString(1, EncodingTools.toSHA2(hostname));
+            ps.setString(1, EncodingTools.toSHA2(certificateName));
             ps.setInt(2, 0);
             try (ResultSet rs = ps.executeQuery())
             {
@@ -274,21 +275,39 @@ class SqlKeyStoreDAO implements KeyStoreDAO
             boolean autoCom = conn.getAutoCommit();
             conn.setAutoCommit(false);
 
-            for (KeyStoreEntry kse : keyStoreEntries)
+            for (String alias : getAliasesFromKeyStoreEntries(keyStoreEntries))
             {
-                deleteKeyStoreEntries(conn, kse.getAlias());
-                deleteCertificateNames(conn, kse.getAlias());
-
-                try (PreparedStatement psIns = conn.prepareStatement("insert into " + KEYSTORE_ENTRIES_TABLE + " (alias_hash,alias,entry_type,rank,creation_date,algorithm,data) value(?,?,?,?,?,?,?)"))
+                deleteKeyStoreEntries(conn, alias);
+                deleteCertificateNames(conn, alias);
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement("insert into " + KEYSTORE_ENTRIES_TABLE + " (alias_hash,alias,entry_type,rank,creation_date,algorithm,data) value(?,?,?,?,?,?,?)"))
+            {
+                for (KeyStoreEntry kse : keyStoreEntries)
                 {
-                    psIns.setString(1, EncodingTools.toSHA2(kse.getAlias()));
-                    psIns.setString(2, kse.getAlias());
-                    psIns.setInt(3, kse.getEntryType().ordinal());
-                    psIns.setInt(4, kse.getRank());
-                    psIns.setLong(5, kse.getCreationDate().getTime());
-                    psIns.setString(6, kse.getAlgorithm());
-                    psIns.setString(7, EncodingTools.b64Encode(kse.getData()));
-                    psIns.executeUpdate();
+                    ps.setString(1, EncodingTools.toSHA2(kse.getAlias()));
+                    ps.setString(2, kse.getAlias());
+                    ps.setInt(3, kse.getEntryType().ordinal());
+                    ps.setInt(4, kse.getRank());
+                    ps.setLong(5, kse.getCreationDate().getTime());
+                    ps.setString(6, kse.getAlgorithm());
+                    ps.setString(7, EncodingTools.b64Encode(kse.getData()));
+                    ps.executeUpdate();
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement("insert into " + KEYSTORE_NAMES_TABLE + " (alias_hash,rank,name_hash,name) value(?,?,?,?)"))
+            {
+                for (KeyStoreEntry kse : keyStoreEntries)
+                {
+                    for (String certName : kse.getNames())
+                    {
+                        ps.setString(1, EncodingTools.toSHA2(kse.getAlias()));
+                        ps.setInt(2, kse.getRank());
+                        ps.setString(3, EncodingTools.toSHA2(certName));
+                        ps.setString(4, certName);
+                        ps.executeUpdate();
+                    }
                 }
             }
 
@@ -303,15 +322,18 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     }
 
     @Override
-    public void deleteKeyStoreEntry(String alias) throws KeyStoreDAOException
+    public void deleteEntries(Collection<String> aliases) throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection())
         {
             boolean autoCom = conn.getAutoCommit();
             conn.setAutoCommit(false);
 
-            deleteKeyStoreEntries(conn, alias);
-            deleteCertificateNames(conn, alias);
+            for (String alias : aliases)
+            {
+                deleteKeyStoreEntries(conn, alias);
+                deleteCertificateNames(conn, alias);
+            }
 
             conn.commit();
             conn.setAutoCommit(autoCom);
@@ -334,13 +356,21 @@ class SqlKeyStoreDAO implements KeyStoreDAO
 
     private void deleteCertificateNames(Connection conn, String alias) throws SQLException
     {
-        try (PreparedStatement ps = conn.prepareStatement("delete from " + KEYSTORE_HOSTNAMES_TABLE + " where alias_hash=?"))
+        try (PreparedStatement ps = conn.prepareStatement("delete from " + KEYSTORE_NAMES_TABLE + " where alias_hash=?"))
         {
             ps.setString(1, EncodingTools.toSHA2(alias));
             ps.executeUpdate();
         }
     }
 
+    private Set<String> getAliasesFromKeyStoreEntries(Collection<KeyStoreEntry> entries)
+    {
+        Set<String> aliases = new HashSet<>();
+        for (KeyStoreEntry kse : entries)
+            aliases.add(kse.getAlias());
+        return aliases;
+    }
+    
     private KeyStoreEntry getKeyStoreEntryObject(ResultSet resultSet) throws SQLException
     {
         KeyStoreEntry kse = new KeyStoreEntry();
