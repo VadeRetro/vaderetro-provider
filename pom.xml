@@ -6,7 +6,7 @@
 	<artifactId>vaderetro-provider</artifactId>
 	<version>0.2.7-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>Vade Retro Provider</name>
+	<name>vaderetro-provider</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
