@@ -42,7 +42,6 @@ import javax.naming.ldap.Rdn;
 
 import org.apache.log4j.Logger;
 
-import com.vaderetrosecure.keystore.dao.CertificateName;
 import com.vaderetrosecure.keystore.dao.DAOHelper;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
@@ -211,14 +210,9 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 				if (chain != null)
 				{
 					for (int i = 0 ; i < chain.length ; i++)
-					{
-					    List<CertificateName> certNames = new ArrayList<>();
-					    for (String name : getCertificateNames(chain[i]))
-					        certNames.add(new CertificateName(alias, i, name));
-						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded()));
-					}
+						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), getCertificateNames(chain[i])));
 				}
-				keystoreDAO.setKeyStoreEntries(entries);
+                keystoreDAO.setKeyStoreEntries(entries);
 			}
         }
         catch (KeyStoreDAOException | IOException | CertificateEncodingException | InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | CertificateParsingException | InvalidNameException e)
@@ -241,12 +235,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
             if (chain != null)
             {
                 for (int i = 0 ; i < chain.length ; i++)
-                {
-                    List<CertificateName> certNames = new ArrayList<>();
-                    for (String name : getCertificateNames(chain[i]))
-                        certNames.add(new CertificateName(alias, i, name));
-                    entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded()));
-                }
+                    entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), getCertificateNames(chain[i])));
             }
             keystoreDAO.setKeyStoreEntries(entries);
         }
@@ -265,10 +254,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 			checkKeyStoreDAOIsLoaded();
 
 			Date creationDate = Date.from(Instant.now());
-			List<CertificateName> certNames = new ArrayList<>();
-			for (String name : getCertificateNames(cert))
-			    certNames.add(new CertificateName(alias, 0, name));
-			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded());
+			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded(), getCertificateNames(cert));
 			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
         }
         catch (KeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
@@ -285,7 +271,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
-			keystoreDAO.deleteKeyStoreEntry(alias);
+			keystoreDAO.deleteEntries(Collections.singleton(alias));
         }
         catch (KeyStoreDAOException e)
         {
