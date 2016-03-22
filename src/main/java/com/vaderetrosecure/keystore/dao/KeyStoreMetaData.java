@@ -155,7 +155,8 @@ public class KeyStoreMetaData
         }
         catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e)
         {
-            LOG.fatal(e, e);
+            LOG.debug(e, e);
+            LOG.fatal(e);
             throw new UnrecoverableKeyException("integrity check failed");
         }
     }
