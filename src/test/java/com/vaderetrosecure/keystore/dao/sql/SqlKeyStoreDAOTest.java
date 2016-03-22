@@ -43,7 +43,7 @@ public class SqlKeyStoreDAOTest
     public void setUp() throws Exception
     {
         secretKey = new SecretKeySpec("secret key".getBytes(StandardCharsets.US_ASCII), "AES");
-        SqlVRKeyStoreDAOFactory daoFactory = new SqlVRKeyStoreDAOFactory();
+        SqlKeyStoreDAOFactory daoFactory = new SqlKeyStoreDAOFactory();
         Properties p = new Properties();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("com.vaderetrosecure.keystore.dao.properties"))
         {

@@ -14,31 +14,34 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
-import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
-import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 
 /**
  * @author ahonore
  *
  */
-class SqlVRKeyStoreDAO implements KeyStoreDAO
+class SqlKeyStoreDAO implements KeyStoreDAO
 {
-    private static final Logger LOG = Logger.getLogger(SqlVRKeyStoreDAO.class);
+    private static final Logger LOG = Logger.getLogger(SqlKeyStoreDAO.class);
     private static final String KEYSTORE_ENTRIES_TABLE = "keystore_entries";
     private static final String KEYSTORE_METADATA_TABLE = "keystore_metadata";
-    
+    private static final String KEYSTORE_NAMES_TABLE = "keystore_names";
+
     private DataSource dataSource;
-    
-    SqlVRKeyStoreDAO(DataSource dataSource)
+
+    SqlKeyStoreDAO(DataSource dataSource)
     {
         this.dataSource = dataSource;
     }
@@ -58,14 +61,14 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
                     line = line.trim();
                     if (line.isEmpty())
                         continue;
-                    
+
                     try (PreparedStatement ps = conn.prepareStatement(line))
                     {
                         ps.executeUpdate();
                     }
                 }
             }
-            
+
             conn.commit();
             conn.setAutoCommit(autoCom);
         }
@@ -108,13 +111,11 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
     @Override
     public int countEntries() throws KeyStoreDAOException
     {
-        try (Connection conn = dataSource.getConnection();
-                PreparedStatement ps = conn.prepareStatement("select distinct count(alias) from " + KEYSTORE_ENTRIES_TABLE);
-                ResultSet rs = ps.executeQuery())
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select distinct count(alias_hash) from " + KEYSTORE_ENTRIES_TABLE); ResultSet rs = ps.executeQuery())
         {
             if (!rs.next())
                 return 0;
-            
+
             return rs.getInt(1);
         }
         catch (SQLException e)
@@ -128,13 +129,11 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
     public List<String> getAliases() throws KeyStoreDAOException
     {
         List<String> aliases = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection(); 
-                PreparedStatement ps = conn.prepareStatement("select distinct alias from " + KEYSTORE_ENTRIES_TABLE); 
-                ResultSet rs = ps.executeQuery())
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select distinct alias from " + KEYSTORE_ENTRIES_TABLE); ResultSet rs = ps.executeQuery())
         {
             while (rs.next())
                 aliases.add(rs.getString(1));
-            
+
             return aliases;
         }
         catch (SQLException e)
@@ -148,9 +147,9 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
     public List<KeyStoreEntry> getKeyStoreEntry(String alias, KeyStoreEntryType keyStoreEntryType) throws KeyStoreDAOException
     {
         List<KeyStoreEntry> entries = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + KEYSTORE_ENTRIES_TABLE + " where alias=? and entry_type=?"))
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + KEYSTORE_ENTRIES_TABLE + " where alias_hash=? and entry_type=?"))
         {
-            ps.setString(1, alias);
+            ps.setString(1, EncodingTools.toSHA2(alias));
             ps.setInt(2, keyStoreEntryType.ordinal());
             try (ResultSet rs = ps.executeQuery())
             {
@@ -170,9 +169,9 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
     public List<KeyStoreEntry> getKeyStoreEntry(String alias) throws KeyStoreDAOException
     {
         List<KeyStoreEntry> entries = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + KEYSTORE_ENTRIES_TABLE + " where alias=?"))
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + KEYSTORE_ENTRIES_TABLE + " where alias_hash=?"))
         {
-            ps.setString(1, alias);
+            ps.setString(1, EncodingTools.toSHA2(alias));
             try (ResultSet rs = ps.executeQuery())
             {
                 while (rs.next())
@@ -190,9 +189,9 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
     @Override
     public Date engineGetCreationDate(String alias) throws KeyStoreDAOException
     {
-        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select creation_date from " + KEYSTORE_ENTRIES_TABLE + " where alias=? limit 1"))
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select creation_date from " + KEYSTORE_ENTRIES_TABLE + " where alias_hash=? limit 1"))
         {
-            ps.setString(1, alias);
+            ps.setString(1, EncodingTools.toSHA2(alias));
             try (ResultSet rs = ps.executeQuery())
             {
                 if (rs.next())
@@ -209,6 +208,29 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
         }
     }
 
+    @Override
+    public String getAliasFromCertificateName(String certificateName) throws KeyStoreDAOException
+    {
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select alias from " + KEYSTORE_NAMES_TABLE + " where hostname_hash=? and rank=? limit 1"))
+        {
+            ps.setString(1, EncodingTools.toSHA2(certificateName));
+            ps.setInt(2, 0);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                if (rs.next())
+                {
+                    return rs.getString(1);
+                }
+            }
+            return null;
+        }
+        catch (SQLException e)
+        {
+            LOG.error(e, e);
+            throw new KeyStoreDAOException(e);
+        }
+    }
+    
     @Override
     public void setMetaData(KeyStoreMetaData keyStoreMetaData) throws KeyStoreDAOException
     {
@@ -253,24 +275,42 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
             boolean autoCom = conn.getAutoCommit();
             conn.setAutoCommit(false);
 
-            try (PreparedStatement psDel = conn.prepareStatement("delete from " + KEYSTORE_ENTRIES_TABLE + " where alias=?"); 
-            		PreparedStatement psIns = conn.prepareStatement("insert into " + KEYSTORE_ENTRIES_TABLE + " (alias,entry_type,rank,creation_date,algorithm,data) value(?,?,?,?,?,?)"))
+            for (String alias : getAliasesFromKeyStoreEntries(keyStoreEntries))
             {
-	            for (KeyStoreEntry kse : keyStoreEntries)
-	            {
-	            	psDel.setString(1, kse.getAlias());
-	            	psDel.executeUpdate();
-
-	            	psIns.setString(1, kse.getAlias());
-	            	psIns.setInt(2, kse.getEntryType().ordinal());
-	            	psIns.setInt(3, kse.getRank());
-	            	psIns.setLong(4, kse.getCreationDate().getTime());
-	            	psIns.setString(5, kse.getAlgorithm());
-	            	psIns.setString(6, EncodingTools.b64Encode(kse.getData()));
-	            	psIns.executeUpdate();
-	            }
+                deleteKeyStoreEntries(conn, alias);
+                deleteCertificateNames(conn, alias);
             }
             
+            try (PreparedStatement ps = conn.prepareStatement("insert into " + KEYSTORE_ENTRIES_TABLE + " (alias_hash,alias,entry_type,rank,creation_date,algorithm,data) value(?,?,?,?,?,?,?)"))
+            {
+                for (KeyStoreEntry kse : keyStoreEntries)
+                {
+                    ps.setString(1, EncodingTools.toSHA2(kse.getAlias()));
+                    ps.setString(2, kse.getAlias());
+                    ps.setInt(3, kse.getEntryType().ordinal());
+                    ps.setInt(4, kse.getRank());
+                    ps.setLong(5, kse.getCreationDate().getTime());
+                    ps.setString(6, kse.getAlgorithm());
+                    ps.setString(7, EncodingTools.b64Encode(kse.getData()));
+                    ps.executeUpdate();
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement("insert into " + KEYSTORE_NAMES_TABLE + " (alias_hash,rank,name_hash,name) value(?,?,?,?)"))
+            {
+                for (KeyStoreEntry kse : keyStoreEntries)
+                {
+                    for (String certName : kse.getNames())
+                    {
+                        ps.setString(1, EncodingTools.toSHA2(kse.getAlias()));
+                        ps.setInt(2, kse.getRank());
+                        ps.setString(3, EncodingTools.toSHA2(certName));
+                        ps.setString(4, certName);
+                        ps.executeUpdate();
+                    }
+                }
+            }
+
             conn.commit();
             conn.setAutoCommit(autoCom);
         }
@@ -282,18 +322,53 @@ class SqlVRKeyStoreDAO implements KeyStoreDAO
     }
 
     @Override
-    public void deleteKeyStoreEntry(String alias) throws KeyStoreDAOException
+    public void deleteEntries(Collection<String> aliases) throws KeyStoreDAOException
     {
-        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("delete from " + KEYSTORE_ENTRIES_TABLE + " where alias=?"))
+        try (Connection conn = dataSource.getConnection())
         {
-        	ps.setString(1, alias);
-        	ps.executeUpdate();
+            boolean autoCom = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+
+            for (String alias : aliases)
+            {
+                deleteKeyStoreEntries(conn, alias);
+                deleteCertificateNames(conn, alias);
+            }
+
+            conn.commit();
+            conn.setAutoCommit(autoCom);
         }
         catch (SQLException e)
         {
             LOG.error(e, e);
             throw new KeyStoreDAOException(e);
         }
+    }
+
+    private void deleteKeyStoreEntries(Connection conn, String alias) throws SQLException
+    {
+        try (PreparedStatement ps = conn.prepareStatement("delete from " + KEYSTORE_ENTRIES_TABLE + " where alias_hash=?"))
+        {
+            ps.setString(1, EncodingTools.toSHA2(alias));
+            ps.executeUpdate();
+        }
+    }
+
+    private void deleteCertificateNames(Connection conn, String alias) throws SQLException
+    {
+        try (PreparedStatement ps = conn.prepareStatement("delete from " + KEYSTORE_NAMES_TABLE + " where alias_hash=?"))
+        {
+            ps.setString(1, EncodingTools.toSHA2(alias));
+            ps.executeUpdate();
+        }
+    }
+
+    private Set<String> getAliasesFromKeyStoreEntries(Collection<KeyStoreEntry> entries)
+    {
+        Set<String> aliases = new HashSet<>();
+        for (KeyStoreEntry kse : entries)
+            aliases.add(kse.getAlias());
+        return aliases;
     }
     
     private KeyStoreEntry getKeyStoreEntryObject(ResultSet resultSet) throws SQLException
