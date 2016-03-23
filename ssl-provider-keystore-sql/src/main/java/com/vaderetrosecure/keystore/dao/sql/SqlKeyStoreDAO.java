@@ -103,7 +103,8 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
@@ -120,7 +121,8 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
@@ -138,7 +140,44 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
+            throw new KeyStoreDAOException(e);
+        }
+    }
+    
+    @Override
+    public List<String> getAuthenticationAliases(String keyType) throws KeyStoreDAOException
+    {
+        Set<String> aliases = new HashSet<>();
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select distinct alias from " + KEYSTORE_ENTRIES_TABLE + " where entry_type=? and rank=? and algorithm=?"))
+        {
+            ps.setInt(1, KeyStoreEntryType.PRIVATE_KEY.ordinal());
+            ps.setInt(2, 0);
+            ps.setString(3, keyType);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                while (rs.next())
+                    aliases.add(rs.getString(1));
+            }
+
+            Set<String> certAliases = new HashSet<>();
+            ps.setInt(1, KeyStoreEntryType.CERTIFICATE.ordinal());
+            ps.setInt(2, 0);
+            ps.setString(3, keyType);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                while (rs.next())
+                    certAliases.add(rs.getString(1));
+            }
+
+            aliases.retainAll(certAliases);
+            return new ArrayList<>(aliases);
+        }
+        catch (SQLException e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
@@ -160,7 +199,8 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
@@ -181,7 +221,8 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
@@ -203,30 +244,55 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
 
     @Override
-    public String getAliasFromCertificateName(String certificateName) throws KeyStoreDAOException
+    public List<KeyStoreEntry> getKeyStoreEntriesByName(String name) throws KeyStoreDAOException
     {
-        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select alias from " + KEYSTORE_NAMES_TABLE + " where hostname_hash=? and rank=? limit 1"))
+        try (Connection conn = dataSource.getConnection())
         {
-            ps.setString(1, EncodingTools.toSHA2(certificateName));
-            ps.setInt(2, 0);
-            try (ResultSet rs = ps.executeQuery())
+            List<String> aliasHashes = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement("select alias_hash from " + KEYSTORE_NAMES_TABLE + " where name_hash=? and rank=?"))
             {
-                if (rs.next())
+                ps.setString(1, EncodingTools.toSHA2(name));
+                ps.setInt(2, 0);
+                try (ResultSet rs = ps.executeQuery())
                 {
-                    return rs.getString(1);
+                    while (rs.next())
+                    {
+                        aliasHashes.add(rs.getString(1));
+                    }
                 }
             }
-            return null;
+            
+            List<KeyStoreEntry> entries = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement("select * from " + KEYSTORE_ENTRIES_TABLE + " where alias_hash=? and entry_type=? and rank=?"))
+            {
+                for (String aliasHash : aliasHashes)
+                {
+                    ps.setString(1, aliasHash);
+                    ps.setInt(2, KeyStoreEntryType.CERTIFICATE.ordinal());
+                    ps.setInt(3, 0);
+                    try (ResultSet rs = ps.executeQuery())
+                    {
+                        while (rs.next())
+                        {
+                            entries.add(getKeyStoreEntryObject(rs));
+                        }
+                    }
+                }
+            }
+            
+            return entries;
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
@@ -262,7 +328,8 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
@@ -316,7 +383,8 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }
@@ -340,7 +408,8 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         }
         catch (SQLException e)
         {
-            LOG.error(e, e);
+            LOG.debug(e, e);
+            LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
     }

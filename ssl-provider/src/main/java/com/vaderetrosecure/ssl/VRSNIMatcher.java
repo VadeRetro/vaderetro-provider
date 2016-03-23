@@ -4,16 +4,21 @@
 package com.vaderetrosecure.ssl;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SNIMatcher;
 import javax.net.ssl.SNIServerName;
 import javax.net.ssl.StandardConstants;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 
 /**
  * @author ahonore
@@ -24,13 +29,13 @@ class VRSNIMatcher extends SNIMatcher
     private final static Logger LOG = Logger.getLogger(VRSNIMatcher.class);
 
     private final KeyStoreDAO keyStoreDAO;
-    private String selectedAlias;
+    private List<KeyStoreEntry> selectedEntries;
 
     VRSNIMatcher(KeyStoreDAO keyStoreDAO)
     {
         super(StandardConstants.SNI_HOST_NAME);
         this.keyStoreDAO = keyStoreDAO;
-        selectedAlias = null;
+        selectedEntries = new ArrayList<>();
     }
 
     @Override
@@ -42,10 +47,19 @@ class VRSNIMatcher extends SNIMatcher
         else
             name = new String(serverName.getEncoded(), StandardCharsets.US_ASCII).toLowerCase();
         
+        LOG.debug("SNIServerName: " + name);
+        
         try
         {
-            selectedAlias = keyStoreDAO.getAliasFromCertificateName(name);
-            return selectedAlias != null;
+            selectedEntries = keyStoreDAO.getKeyStoreEntriesByName(name);
+            if (LOG.getEffectiveLevel() == Level.DEBUG)
+            {
+                if (selectedEntries.isEmpty())
+                    LOG.debug("no selected entries");
+                else
+                    LOG.debug("selected entries: " + String.join(",", selectedEntries.stream().map(e -> e.getAlias()).collect(Collectors.toList())));
+            }
+            return !selectedEntries.isEmpty();
         }
         catch (KeyStoreDAOException e)
         {
@@ -55,8 +69,8 @@ class VRSNIMatcher extends SNIMatcher
         return false;
     }
     
-    String getSelectedAlias()
+    List<KeyStoreEntry> getSelectedEntries()
     {
-        return selectedAlias;
+        return selectedEntries;
     }
 }

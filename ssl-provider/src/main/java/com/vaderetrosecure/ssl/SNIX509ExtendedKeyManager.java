@@ -3,19 +3,20 @@
  */
 package com.vaderetrosecure.ssl;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
+import java.util.Collection;
 import java.util.List;
 
+import javax.net.ssl.SNIMatcher;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
 
 import org.apache.log4j.Logger;
@@ -23,6 +24,7 @@ import org.apache.log4j.Logger;
 import com.vaderetrosecure.keystore.dao.DAOHelper;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
 
 /**
@@ -35,14 +37,12 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
 
     private KeyStoreDAO keyStoreDAO;
     private KeyStoreMetaData keyStoreMetaData;
-    private char[] masterPassword;
 
-    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, KeyStoreMetaData keyStoreMetaData, char[] masterPassword)
+    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, KeyStoreMetaData keyStoreMetaData)
     {
         super();
         this.keyStoreDAO = keyStoreDAO;
         this.keyStoreMetaData = keyStoreMetaData;
-        this.masterPassword = masterPassword;
     }
 
     KeyStoreDAO getKeyStoreDAO()
@@ -59,7 +59,11 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine)
     {
-        return null;
+        String[] aliases = getServerAliases(keyType, issuers);
+        if (aliases == null)
+            return null;
+        
+        return getSelectedSNIAlias(keyType, issuers, engine.getSSLParameters().getSNIMatchers());
     }
 
     @Override
@@ -71,8 +75,11 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket)
     {
-        // TODO Auto-generated method stub
-        return null;
+        String[] aliases = getServerAliases(keyType, issuers);
+        if (aliases == null)
+            return null;
+        
+        return getSelectedSNIAlias(keyType, issuers, ((SSLSocket) socket).getSSLParameters().getSNIMatchers());
     }
 
     @Override
@@ -120,8 +127,33 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     @Override
     public String[] getServerAliases(String keyType, Principal[] issuers)
     {
-        // TODO Auto-generated method stub
+        try
+        {
+            List<String> aliases = keyStoreDAO.getAuthenticationAliases(keyType);
+            if (aliases.isEmpty())
+                return null;
+            
+            return aliases.toArray(new String[] {});
+        }
+        catch (KeyStoreDAOException e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
+        }
+
         return null;
     }
 
+    private String getSelectedSNIAlias(String keyType, Principal[] issuers, Collection<SNIMatcher> sniMatchers)
+    {
+        for (SNIMatcher m : sniMatchers)
+        {
+            if (VRSNIMatcher.class.isInstance(m))
+                for (KeyStoreEntry kse : ((VRSNIMatcher) m).getSelectedEntries())
+                    if (kse.getAlgorithm().equals(keyType))
+                        return kse.getAlias();
+        }
+        
+        return null;
+    }
 }

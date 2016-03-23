@@ -71,8 +71,9 @@ public class VRKeyStoreSpiTest
     {
         System.setProperty(KeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
         Security.addProvider(new VadeRetroProvider());
-        KeyStore ks = KeyStore.getInstance("VR");
+        KeyStore ks = KeyStore.getInstance("KS", "VR");
         Assert.assertEquals("VR", ks.getProvider().getName());
+        Assert.assertEquals("KS", ks.getType());
     }
 
     @Test(expected=IOException.class)
