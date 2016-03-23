@@ -30,8 +30,10 @@ public class VadeRetroProvider extends Provider
             public Object run()
             {
                 put("KeyStore.VR", VRKeyStoreSpi.class.getName());
-                put("SSLContext.TLS", TLSSSLContextSpi.class.getName());
+                put("KeyStore.KS", VRKeyStoreSpi.class.getName());
                 put("KeyManagerFactory.VR", VRKeyManagerFactorySpi.class.getName());
+                put("KeyManagerFactory.X509", VRKeyManagerFactorySpi.class.getName());
+                put("SSLContext.TLS", TLSSSLContextSpi.class.getName());
                 return null;
             }
         });
