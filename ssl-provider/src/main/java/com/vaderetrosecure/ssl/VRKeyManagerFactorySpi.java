@@ -12,11 +12,13 @@ import java.security.UnrecoverableKeyException;
 import java.security.spec.InvalidKeySpecException;
 
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.KeyManagerFactorySpi;
 import javax.net.ssl.ManagerFactoryParameters;
 
 import org.apache.log4j.Logger;
 
+import com.vaderetrosecure.VadeRetroProvider;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
@@ -30,20 +32,20 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 {
     private static final Logger LOG = Logger.getLogger(VRKeyManagerFactorySpi.class);
 
-	private SNIX509ExtendedKeyManager keyManager;
+	private KeyManager keyManagers[];
 	
 	public VRKeyManagerFactorySpi()
 	{
-		keyManager = null;
+	    keyManagers = null;
 	}
 
     @Override
     protected KeyManager[] engineGetKeyManagers()
     {
-    	if (keyManager == null)
+    	if (keyManagers == null)
     		throw new IllegalStateException();
     	
-        return new KeyManager[] { keyManager };
+        return keyManagers;
     }
 
     @Override
@@ -55,15 +57,19 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
     @Override
     protected void engineInit(KeyStore ks, char[] password) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException
     {
-    	if ((ks != null) && !ks.getProvider().getName().equals("VR"))
-    		throw new KeyStoreException("VR provider expected (actual: " + ks.getProvider().getName() + ")");
+    	if ((ks == null) || (!ks.getProvider().getName().equals(VadeRetroProvider.VR_PROVIDER)))
+    	{
+    	    KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+    	    kmf.init(ks, password);
+    	    keyManagers = kmf.getKeyManagers();
+    	}
     	
 		try
 		{
 			KeyStoreDAO ksdao = KeyStoreDAOFactory.getInstance().getKeyStoreDAO();
 			KeyStoreMetaData keyStoreMetaData = ksdao.getMetaData();
 			keyStoreMetaData.checkIntegrity(password);
-	    	keyManager = new SNIX509ExtendedKeyManager(ksdao, keyStoreMetaData, password);
+	    	keyManagers = new KeyManager[] { new SNIX509ExtendedKeyManager(ksdao, keyStoreMetaData) };
 		}
 		catch (KeyStoreDAOException e)
 		{
