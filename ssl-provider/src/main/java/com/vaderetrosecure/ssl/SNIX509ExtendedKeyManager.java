@@ -129,7 +129,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     {
         try
         {
-            List<String> aliases = keyStoreDAO.getAliases(keyType);
+            List<String> aliases = keyStoreDAO.getAuthenticationAliases(keyType);
             if (aliases.isEmpty())
                 return null;
             
