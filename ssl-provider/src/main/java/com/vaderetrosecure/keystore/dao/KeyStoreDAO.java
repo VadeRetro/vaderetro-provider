@@ -24,10 +24,11 @@ public interface KeyStoreDAO
     KeyStoreMetaData getMetaData() throws KeyStoreDAOException;
     int countEntries() throws KeyStoreDAOException;
     List<String> getAliases() throws KeyStoreDAOException;
+    List<String> getAliases(String keyType) throws KeyStoreDAOException;
     List<KeyStoreEntry> getKeyStoreEntry(String alias, KeyStoreEntryType keyStoreEntryType) throws KeyStoreDAOException;
     List<KeyStoreEntry> getKeyStoreEntry(String alias) throws KeyStoreDAOException;
+    List<KeyStoreEntry> getKeyStoreEntriesByName(String name) throws KeyStoreDAOException;
     Date engineGetCreationDate(String alias) throws KeyStoreDAOException;
-    String getAliasFromCertificateName(String certificateName) throws KeyStoreDAOException;
     
     void setMetaData(KeyStoreMetaData keyStoreMetaData) throws KeyStoreDAOException;
     void setKeyStoreEntries(Collection<KeyStoreEntry> keyStoreEntries) throws KeyStoreDAOException;
