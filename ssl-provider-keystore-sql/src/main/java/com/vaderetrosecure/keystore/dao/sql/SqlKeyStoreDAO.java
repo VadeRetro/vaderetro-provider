@@ -147,19 +147,32 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     }
     
     @Override
-    public List<String> getAliases(String keyType) throws KeyStoreDAOException
+    public List<String> getAuthenticationAliases(String keyType) throws KeyStoreDAOException
     {
-        List<String> aliases = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select distinct alias from " + KEYSTORE_ENTRIES_TABLE + " where algorithm=?"))
+        Set<String> aliases = new HashSet<>();
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select distinct alias from " + KEYSTORE_ENTRIES_TABLE + " where entry_type=? and rank=? and algorithm=?"))
         {
-            ps.setString(1, keyType);
+            ps.setInt(1, KeyStoreEntryType.PRIVATE_KEY.ordinal());
+            ps.setInt(2, 0);
+            ps.setString(3, keyType);
             try (ResultSet rs = ps.executeQuery())
             {
                 while (rs.next())
                     aliases.add(rs.getString(1));
             }
 
-            return aliases;
+            Set<String> certAliases = new HashSet<>();
+            ps.setInt(1, KeyStoreEntryType.CERTIFICATE.ordinal());
+            ps.setInt(2, 0);
+            ps.setString(3, keyType);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                while (rs.next())
+                    certAliases.add(rs.getString(1));
+            }
+
+            aliases.retainAll(certAliases);
+            return new ArrayList<>(aliases);
         }
         catch (SQLException e)
         {
