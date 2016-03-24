@@ -45,10 +45,31 @@ To implement a DAO, make an implementation of the `com.vaderetrosecure.keystore.
 
 To use the keystore from the Vade Retro Provider, just follow the usual access process:
 ```java
-...
-char[] password = getPassword
+char[] password = getPassword(...);
 KeyStore ks = KeyStore.getInstance("KS", "VR");
 ks.load(null, password);
 ...
 ```
 Then follow the methods of the KeyStore engine, defined in Java.
+
+
+## Using the SSL context
+
+### Creating the context
+
+To use the SSL context from the Vade Retro Provider, just follow the usual access process:
+```java
+// get a keystore instance
+char[] password = getPassword(...);
+KeyStore ks = KeyStore.getInstance("KS", "VR");
+// get an instance of the Vade Retro X509  key manager factory
+KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509", "VR");
+kmf.init(KeyStore.getInstance("KS", "VR"), null);
+// create a TLS context with dynamic keys management
+SSLContext sslCtx = SSLContext.getInstance("TLS", "VR");
+sslCtx.init(kmf.getKeyManagers(), null, null);
+...
+```
+
+### Using it with Jetty
+
