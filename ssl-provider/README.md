@@ -18,14 +18,12 @@ You can add it dynamically to your code or statically for all the JVM instances.
 ### Dynamic Registration
 
 To register dynamically the provider, just put one line of code into a static block somewhere in a class:
-
 ```java
 static
 {
 	Security.addProvider(new VadeRetroProvider());
 }
 ```
-
 Now, you're ready to play with it.
 
 ### Static Registration
@@ -42,3 +40,15 @@ java -Dcom.vaderetrosecure.keystore.dao.factory=com.mycompany.MyDAOFactoryImpl m
 ## Implementing a DAO
 
 To implement a DAO, make an implementation of the `com.vaderetrosecure.keystore.dao.KeyStoreDAO` interface. Then you must implement a DAO factory by extending the `com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory` class. This class will be the entry point of the provider, using the parameter given in the previous section.
+
+## Using the keystore
+
+To use the keystore from the Vade Retro Provider, just follow the usual access process:
+```java
+...
+char[] password = getPassword
+KeyStore ks = KeyStore.getInstance("KS", "VR");
+ks.load(null, password);
+...
+```
+Then follow the methods of the KeyStore engine, defined in Java.
