@@ -140,7 +140,7 @@ public class IntegrityData
         return CipheringTools.getAESSecretKey(masterPassword, getSalt());
     }
     
-    public void checkIntegrity(char[] masterPassword) throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, InvalidKeySpecException
+    public void checkIntegrity(SecretKey masterKey) throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, InvalidKeySpecException
     {
 //        if ((KEYSTORE_MAJOR_VERSION != getMajorVersion()) || !KEYSTORE_VERSION.equals(getVersion()))
 //            throw new IOException("bad version: expected " + KEYSTORE_VERSION);
@@ -149,7 +149,6 @@ public class IntegrityData
         try
         {
             MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
-            SecretKey masterKey = getMasterKey(masterPassword);
             byte[] keyPasswordSalt = CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
             if (!Arrays.equals(getKeyPasswordSaltHash(), sha2.digest(keyPasswordSalt)))
                 throw new UnrecoverableKeyException("integrity check failed");
@@ -167,17 +166,17 @@ public class IntegrityData
         return CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
     }
     
-    public byte[] cipherKeyEntry(char[] keyPassword, byte[] rawKeyEntry) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
-    {
-        SecretKey secret = CipheringTools.getAESSecretKey(keyPassword, getSalt());
-        byte[] rawKeyIV = CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
-        return CipheringTools.cipherData(rawKeyEntry, secret, rawKeyIV);
-    }
+//    public byte[] cipherKeyEntry(char[] keyPassword, byte[] rawKeyEntry) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+//    {
+//        SecretKey secret = CipheringTools.getAESSecretKey(keyPassword, getSalt());
+//        byte[] rawKeyIV = CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
+//        return CipheringTools.cipherData(rawKeyEntry, secret, rawKeyIV);
+//    }
     
-    public byte[] decipherKeyEntry(char[] keyPassword, byte[] cipheredKeyEntry) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
-    {
-        SecretKey secret = CipheringTools.getAESSecretKey(keyPassword, getSalt());
-        byte[] rawKeyIV = CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
-        return CipheringTools.decipherData(cipheredKeyEntry, secret, rawKeyIV);
-    }
+//    public byte[] decipherKeyEntry(char[] keyPassword, byte[] cipheredKeyEntry) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+//    {
+//        SecretKey secret = CipheringTools.getAESSecretKey(keyPassword, getSalt());
+//        byte[] rawKeyIV = CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
+//        return CipheringTools.decipherData(cipheredKeyEntry, secret, rawKeyIV);
+//    }
 }

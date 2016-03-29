@@ -12,6 +12,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * @author ahonore
@@ -53,14 +54,14 @@ public class KeyProtection
         this.cipheredKeyProtection = cipheredKeyProtection;
     }
     
-    public byte[] getKeyProtection(PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+    public SecretKey getKeyProtection(PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
-        return CipheringTools.decipherData(getCipheredKeyProtection(), publicKey);
+        return new SecretKeySpec(CipheringTools.decipherData(getCipheredKeyProtection(), publicKey), "AES");
     }
     
-    public void setKeyProtection(byte[] keyProtection, PrivateKey privateKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+    public void setKeyProtection(SecretKey keyProtection, PrivateKey privateKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
-        setCipheredKeyProtection(CipheringTools.cipherData(keyProtection, privateKey));
+        setCipheredKeyProtection(CipheringTools.cipherData(keyProtection.getEncoded(), privateKey));
     }
     
     public static SecretKey generateSecretKey()
