@@ -33,7 +33,7 @@ To register statically the provider, please follow the explanations from the [Ja
 ## Setting the DAO factory
 
 To use a DAO implementation, you must inform the provider which DAO factory to instantiate. The provider will try to get the `com.vaderetrosecure.keystore.dao.factory` system variable. To set it, just put an argument in the command line, like this:
-```bash
+```
 java -Dcom.vaderetrosecure.keystore.dao.factory=com.mycompany.MyDAOFactoryImpl my-project.jar
 ```
 

@@ -32,10 +32,10 @@ logAbandoned = true
 
 Before launching the application, be sure your database server is configured correctly: 
 * a database must exist, with the name defined in the url of the property file. In our MySQL example, it can be done with the command:
-```bash
+```
 create database KEYSTORE;
 ```
 * the created user must have all privileges in the database. In our MySQL example, it can be done with the command:
-```bash
+```
 grant all privileges on KEYSTORE.* to 'keystore'@'%' identified by 'keystore';
 ```
