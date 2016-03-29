@@ -24,8 +24,8 @@ import org.apache.log4j.Logger;
 import com.vaderetrosecure.keystore.dao.DAOHelper;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
-import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
-import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
+import com.vaderetrosecure.keystore.dao.KeyEntry;
+import com.vaderetrosecure.keystore.dao.IntegrityData;
 
 /**
  * @author ahonore
@@ -36,9 +36,9 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     private final static Logger LOG = Logger.getLogger(SNIX509ExtendedKeyManager.class);
 
     private KeyStoreDAO keyStoreDAO;
-    private KeyStoreMetaData keyStoreMetaData;
+    private IntegrityData keyStoreMetaData;
 
-    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, KeyStoreMetaData keyStoreMetaData)
+    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, IntegrityData keyStoreMetaData)
     {
         super();
         this.keyStoreDAO = keyStoreDAO;
@@ -149,7 +149,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         for (SNIMatcher m : sniMatchers)
         {
             if (VRSNIMatcher.class.isInstance(m))
-                for (KeyStoreEntry kse : ((VRSNIMatcher) m).getSelectedEntries())
+                for (KeyEntry kse : ((VRSNIMatcher) m).getSelectedEntries())
                     if (kse.getAlgorithm().equals(keyType))
                         return kse.getAlias();
         }

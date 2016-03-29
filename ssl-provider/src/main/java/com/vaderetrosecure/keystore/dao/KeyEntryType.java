@@ -7,7 +7,7 @@ package com.vaderetrosecure.keystore.dao;
  * @author ahonore
  *
  */
-public enum KeyStoreEntryType
+public enum KeyEntryType
 {
     KEY,
     SECRET_KEY,

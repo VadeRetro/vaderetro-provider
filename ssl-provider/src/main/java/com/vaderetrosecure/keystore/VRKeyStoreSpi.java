@@ -46,9 +46,9 @@ import com.vaderetrosecure.keystore.dao.DAOHelper;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
-import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
-import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
-import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
+import com.vaderetrosecure.keystore.dao.KeyEntry;
+import com.vaderetrosecure.keystore.dao.KeyEntryType;
+import com.vaderetrosecure.keystore.dao.IntegrityData;
 
 /**
  * @author ahonore
@@ -59,12 +59,12 @@ public class VRKeyStoreSpi extends KeyStoreSpi
     private final static Logger LOG = Logger.getLogger(VRKeyStoreSpi.class);
 
     private KeyStoreDAO keystoreDAO;
-    private KeyStoreMetaData keyStoreMetaData;
+    private IntegrityData integrityData;
     
     public VRKeyStoreSpi()
     {
         keystoreDAO = null;
-        keyStoreMetaData = null;
+        integrityData = null;
 
         try
         {
@@ -80,7 +80,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
     VRKeyStoreSpi(KeyStoreDAO keystoreDAO)
     {
         this.keystoreDAO = keystoreDAO;
-        keyStoreMetaData = null;
+        integrityData = null;
     }
     
     @Override
@@ -90,15 +90,15 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
-			PrivateKey pk = DAOHelper.getPrivateKey(keystoreDAO, keyStoreMetaData, alias);
+			PrivateKey pk = DAOHelper.getPrivateKey(keystoreDAO, integrityData, alias);
 			if (pk != null)
 			    return pk;
 
-			List<KeyStoreEntry> entries = keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY);
+			List<KeyEntry> entries = keystoreDAO.getKeyEntry(alias, KeyEntryType.SECRET_KEY);
             if (!entries.isEmpty())
             {
-                KeyStoreEntry kse = entries.get(0);
-                return new SecretKeySpec(keyStoreMetaData.decipherKeyEntry(null, kse.getData()), kse.getAlgorithm());
+                KeyEntry kse = entries.get(0);
+                return new SecretKeySpec(integrityData.decipherKeyEntry(null, kse.getData()), kse.getAlgorithm());
             }
 
             return null;
@@ -175,7 +175,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
-			List<KeyStoreEntry> entries = keystoreDAO.getKeyStoreEntry(alias);
+			List<KeyEntry> entries = keystoreDAO.getKeyEntry(alias);
             if (entries.isEmpty())
                 return null;
             
@@ -202,17 +202,17 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 
 			Date creationDate = Date.from(Instant.now());
 			if (SecretKey.class.isInstance(key))
-				keystoreDAO.setKeyStoreEntries(Collections.singleton(new KeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKeyEntry(null, key.getEncoded()))));
+				keystoreDAO.setKeyEntries(Collections.singleton(new KeyEntry(alias, KeyEntryType.SECRET_KEY, 0, creationDate, key.getAlgorithm(), integrityData.cipherKeyEntry(null, key.getEncoded()))));
 			else
 			{
-				List<KeyStoreEntry> entries = new ArrayList<>();
-				entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), keyStoreMetaData.cipherKeyEntry(null, key.getEncoded())));
+				List<KeyEntry> entries = new ArrayList<>();
+				entries.add(new KeyEntry(alias, KeyEntryType.PRIVATE_KEY, 0, creationDate, key.getAlgorithm(), integrityData.cipherKeyEntry(null, key.getEncoded())));
 				if (chain != null)
 				{
 					for (int i = 0 ; i < chain.length ; i++)
-						entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), getCertificateNames(chain[i])));
+						entries.add(new KeyEntry(alias, KeyEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), getCertificateNames(chain[i])));
 				}
-                keystoreDAO.setKeyStoreEntries(entries);
+                keystoreDAO.setKeyEntries(entries);
 			}
         }
         catch (KeyStoreDAOException | IOException | CertificateEncodingException | InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | CertificateParsingException | InvalidNameException e)
@@ -230,14 +230,14 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 			checkKeyStoreDAOIsLoaded();
 
 			Date creationDate = Date.from(Instant.now());
-			List<KeyStoreEntry> entries = new ArrayList<>();
-			entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.KEY, 0, creationDate, null, key));
+			List<KeyEntry> entries = new ArrayList<>();
+			entries.add(new KeyEntry(alias, KeyEntryType.KEY, 0, creationDate, null, key));
             if (chain != null)
             {
                 for (int i = 0 ; i < chain.length ; i++)
-                    entries.add(new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), getCertificateNames(chain[i])));
+                    entries.add(new KeyEntry(alias, KeyEntryType.CERTIFICATE, i, creationDate, chain[i].getPublicKey().getAlgorithm(), chain[i].getEncoded(), getCertificateNames(chain[i])));
             }
-            keystoreDAO.setKeyStoreEntries(entries);
+            keystoreDAO.setKeyEntries(entries);
         }
         catch (KeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
         {
@@ -254,8 +254,8 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 			checkKeyStoreDAOIsLoaded();
 
 			Date creationDate = Date.from(Instant.now());
-			KeyStoreEntry kse = new KeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded(), getCertificateNames(cert));
-			keystoreDAO.setKeyStoreEntries(Collections.singleton(kse));
+			KeyEntry kse = new KeyEntry(alias, KeyEntryType.CERTIFICATE, 0, creationDate, cert.getPublicKey().getAlgorithm(), cert.getEncoded(), getCertificateNames(cert));
+			keystoreDAO.setKeyEntries(Collections.singleton(kse));
         }
         catch (KeyStoreDAOException | IOException | CertificateEncodingException | CertificateParsingException | InvalidNameException e)
         {
@@ -315,7 +315,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
-			return !keystoreDAO.getKeyStoreEntry(alias).isEmpty();
+			return !keystoreDAO.getKeyEntry(alias).isEmpty();
         }
         catch (KeyStoreDAOException e)
         {
@@ -357,9 +357,9 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 			
-            return !keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.SECRET_KEY).isEmpty() || 
-            		!keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY).isEmpty() ||
-            		!keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.KEY).isEmpty();
+            return !keystoreDAO.getKeyEntry(alias, KeyEntryType.SECRET_KEY).isEmpty() || 
+            		!keystoreDAO.getKeyEntry(alias, KeyEntryType.PRIVATE_KEY).isEmpty() ||
+            		!keystoreDAO.getKeyEntry(alias, KeyEntryType.KEY).isEmpty();
         }
         catch (KeyStoreDAOException e)
         {
@@ -380,7 +380,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
-			return !keystoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE).isEmpty();
+			return !keystoreDAO.getKeyEntry(alias, KeyEntryType.CERTIFICATE).isEmpty();
         }
         catch (KeyStoreDAOException e)
         {
@@ -431,7 +431,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         
         try
         {
-            keyStoreMetaData = keystoreDAO.getMetaData();
+            integrityData = keystoreDAO.getIntegrityData();
         }
         catch (KeyStoreDAOException e)
         {
@@ -440,8 +440,8 @@ public class VRKeyStoreSpi extends KeyStoreSpi
             try
             {
                 keystoreDAO.createSchema();
-                keyStoreMetaData = KeyStoreMetaData.generate(password);
-                keystoreDAO.setMetaData(keyStoreMetaData);
+                integrityData = IntegrityData.generate(password);
+                keystoreDAO.setIntegrityData(integrityData);
             }
             catch (GeneralSecurityException | KeyStoreDAOException ee)
             {
@@ -453,7 +453,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 
         try
         {
-            keyStoreMetaData.checkIntegrity(password);
+            integrityData.checkIntegrity(password);
         }
         catch (UnrecoverableKeyException | InvalidKeySpecException e)
         {

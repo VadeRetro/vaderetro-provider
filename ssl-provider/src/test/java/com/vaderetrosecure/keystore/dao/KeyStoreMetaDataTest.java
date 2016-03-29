@@ -25,13 +25,13 @@ import org.junit.Test;
  */
 public class KeyStoreMetaDataTest
 {
-    private KeyStoreMetaData keyStoreMetaData;
+    private IntegrityData keyStoreMetaData;
     private final String masterPassword = "test-integrity";
     
     @Before
     public void setUp() throws Exception
     {
-        keyStoreMetaData = KeyStoreMetaData.generate(masterPassword.toCharArray());
+        keyStoreMetaData = IntegrityData.generate(masterPassword.toCharArray());
     }
 
     @Test(expected=UnrecoverableKeyException.class)

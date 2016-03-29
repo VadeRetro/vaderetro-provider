@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
 
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
-import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
+import com.vaderetrosecure.keystore.dao.KeyEntry;
 
 /**
  * @author ahonore
@@ -29,7 +29,7 @@ class VRSNIMatcher extends SNIMatcher
     private final static Logger LOG = Logger.getLogger(VRSNIMatcher.class);
 
     private final KeyStoreDAO keyStoreDAO;
-    private List<KeyStoreEntry> selectedEntries;
+    private List<KeyEntry> selectedEntries;
 
     VRSNIMatcher(KeyStoreDAO keyStoreDAO)
     {
@@ -51,7 +51,7 @@ class VRSNIMatcher extends SNIMatcher
         
         try
         {
-            selectedEntries = keyStoreDAO.getKeyStoreEntriesByName(name);
+            selectedEntries = keyStoreDAO.getKeyEntriesByName(name);
             if (LOG.getEffectiveLevel() == Level.DEBUG)
             {
                 if (selectedEntries.isEmpty())
@@ -69,7 +69,7 @@ class VRSNIMatcher extends SNIMatcher
         return false;
     }
     
-    List<KeyStoreEntry> getSelectedEntries()
+    List<KeyEntry> getSelectedEntries()
     {
         return selectedEntries;
     }

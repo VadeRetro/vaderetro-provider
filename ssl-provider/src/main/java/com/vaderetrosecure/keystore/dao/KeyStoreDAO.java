@@ -21,11 +21,13 @@ public interface KeyStoreDAO
      */
     void createSchema() throws KeyStoreDAOException;
     
-    KeyStoreMetaData getMetaData() throws KeyStoreDAOException;
+    IntegrityData getIntegrityData() throws KeyStoreDAOException;
     
     int countEntries() throws KeyStoreDAOException;
     
     List<String> getAliases() throws KeyStoreDAOException;
+    
+    Version getVersion() throws KeyStoreDAOException;
     
     /**
      * Get aliases that refer to private key/certificate pairs.
@@ -37,11 +39,13 @@ public interface KeyStoreDAO
      */
     List<String> getAuthenticationAliases(String keyType) throws KeyStoreDAOException;
     
-    List<KeyStoreEntry> getKeyStoreEntry(String alias, KeyStoreEntryType keyStoreEntryType) throws KeyStoreDAOException;
+    List<KeyEntry> getKeyEntry(String alias, KeyEntryType keyStoreEntryType) throws KeyStoreDAOException;
     
-    List<KeyStoreEntry> getKeyStoreEntry(String alias) throws KeyStoreDAOException;
+    List<KeyEntry> getKeyEntry(String alias) throws KeyStoreDAOException;
     
-    List<KeyStoreEntry> getKeyStoreEntriesByName(String name) throws KeyStoreDAOException;
+    List<KeyEntry> getKeyEntriesByName(String name) throws KeyStoreDAOException;
+    
+    KeyProtection getKeyProtection(String alias) throws KeyStoreDAOException;
     
     /**
      * Return the date of the creation of the entry in the structure.
@@ -50,11 +54,13 @@ public interface KeyStoreDAO
      * @return
      * @throws KeyStoreDAOException
      */
-    Date engineGetCreationDate(String alias) throws KeyStoreDAOException;
+    Date getCreationDate(String alias) throws KeyStoreDAOException;
     
-    void setMetaData(KeyStoreMetaData keyStoreMetaData) throws KeyStoreDAOException;
+    void setIntegrityData(IntegrityData integrityData) throws KeyStoreDAOException;
     
-    void setKeyStoreEntries(Collection<KeyStoreEntry> keyStoreEntries) throws KeyStoreDAOException;
+    void setKeyEntries(Collection<KeyEntry> keyEntries) throws KeyStoreDAOException;
+    
+    void setKeyProtections(Collection<KeyProtection> keyProtections) throws KeyStoreDAOException;
     
     void deleteEntries(Collection<String> aliases) throws KeyStoreDAOException;
 }

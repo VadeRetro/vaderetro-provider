@@ -24,7 +24,7 @@ import org.junit.Test;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
-import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
+import com.vaderetrosecure.keystore.dao.IntegrityData;
 
 /**
  * @author ahonore
@@ -68,7 +68,7 @@ public class VadeRetroProviderTest
             KeyStoreDAO ksdao = mock(KeyStoreDAO.class);
             try
             {
-                when(ksdao.getMetaData()).thenReturn(KeyStoreMetaData.generate(null));
+                when(ksdao.getIntegrityData()).thenReturn(IntegrityData.generate(null));
             }
             catch (Exception e)
             {

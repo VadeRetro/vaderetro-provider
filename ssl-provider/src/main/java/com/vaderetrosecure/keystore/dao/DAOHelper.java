@@ -38,13 +38,13 @@ public final class DAOHelper
 	{
 	}
 	
-	public static PrivateKey getPrivateKey(KeyStoreDAO keyStoreDAO, KeyStoreMetaData keyStoreMetaData, String alias) throws KeyStoreDAOException, NoSuchAlgorithmException
+	public static PrivateKey getPrivateKey(KeyStoreDAO keyStoreDAO, IntegrityData keyStoreMetaData, String alias) throws KeyStoreDAOException, NoSuchAlgorithmException
 	{
-		List<KeyStoreEntry> entries = keyStoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.PRIVATE_KEY);
+		List<KeyEntry> entries = keyStoreDAO.getKeyEntry(alias, KeyEntryType.PRIVATE_KEY);
 		if (entries.isEmpty())
 			return null;
 
-		KeyStoreEntry kse = entries.get(0);
+		KeyEntry kse = entries.get(0);
 		KeyFactory kf = KeyFactory.getInstance(kse.getAlgorithm());
 		try
 		{
@@ -64,13 +64,13 @@ public final class DAOHelper
 
 	public static List<Certificate> getListOfCertificates(KeyStoreDAO keyStoreDAO, String alias) throws KeyStoreDAOException, CertificateException
     {
-		List<KeyStoreEntry> entries = keyStoreDAO.getKeyStoreEntry(alias, KeyStoreEntryType.CERTIFICATE);
+		List<KeyEntry> entries = keyStoreDAO.getKeyEntry(alias, KeyEntryType.CERTIFICATE);
 		if (entries.isEmpty())
 			return Collections.emptyList();
             	
 		List<Certificate> certChain = new ArrayList<>();
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
-		for (KeyStoreEntry kse : entries)
+		for (KeyEntry kse : entries)
 		{
 			try (InputStream is = new ByteArrayInputStream(kse.getData()))
 			{

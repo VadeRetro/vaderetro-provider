@@ -22,7 +22,7 @@ import com.vaderetrosecure.VadeRetroProvider;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
-import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
+import com.vaderetrosecure.keystore.dao.IntegrityData;
 
 /**
  * @author ahonore
@@ -67,9 +67,9 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 		try
 		{
 			KeyStoreDAO ksdao = KeyStoreDAOFactory.getInstance().getKeyStoreDAO();
-			KeyStoreMetaData keyStoreMetaData = ksdao.getMetaData();
-			keyStoreMetaData.checkIntegrity(password);
-	    	keyManagers = new KeyManager[] { new SNIX509ExtendedKeyManager(ksdao, keyStoreMetaData) };
+			IntegrityData integrityData = ksdao.getIntegrityData();
+			integrityData.checkIntegrity(password);
+	    	keyManagers = new KeyManager[] { new SNIX509ExtendedKeyManager(ksdao, integrityData) };
 		}
 		catch (KeyStoreDAOException e)
 		{

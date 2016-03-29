@@ -12,27 +12,27 @@ import java.util.List;
  * @author ahonore
  *
  */
-public class KeyStoreEntry
+public class KeyEntry
 {
     private String alias;
-    private KeyStoreEntryType entryType;
+    private KeyEntryType entryType;
     private int rank;
     private Date creationDate;
     private String algorithm;
     private byte[] data;
     private List<String> names;
 
-    public KeyStoreEntry()
+    public KeyEntry()
     {
-        this("", KeyStoreEntryType.KEY, 0, Date.from(Instant.now()), "", null);
+        this("", KeyEntryType.KEY, 0, Date.from(Instant.now()), "", null);
     }
 
-    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data)
+    public KeyEntry(String alias, KeyEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data)
     {
         this(alias, entryType, rank, creationDate, algorithm, data, new ArrayList<>());
     }
 
-    public KeyStoreEntry(String alias, KeyStoreEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data, List<String> names)
+    public KeyEntry(String alias, KeyEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data, List<String> names)
     {
         this.alias = alias;
         this.entryType = entryType;
@@ -53,12 +53,12 @@ public class KeyStoreEntry
         this.alias = alias;
     }
 
-    public KeyStoreEntryType getEntryType()
+    public KeyEntryType getEntryType()
     {
         return entryType;
     }
 
-    public void setEntryType(KeyStoreEntryType entryType)
+    public void setEntryType(KeyEntryType entryType)
     {
         this.entryType = entryType;
     }
