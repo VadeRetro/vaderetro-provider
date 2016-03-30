@@ -121,18 +121,18 @@ public class IntegrityData
         byte[] salt = new byte[16];
         random.nextBytes(salt);
 
-        byte[] keyPasswordSalt = new byte[16];
-        random.nextBytes(keyPasswordSalt);
+        byte[] integrityData = new byte[64];
+        random.nextBytes(integrityData);
 
         byte[] iv = new byte[16];
         random.nextBytes(iv);
 
         MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
-        byte[] keyPasswordSaltHash = sha2.digest(keyPasswordSalt);
+        byte[] integrityDataHash = sha2.digest(integrityData);
         SecretKey secret = CipheringTools.getAESSecretKey(password, salt);
-        byte[] cipheredkeyPasswordSalt = CipheringTools.cipherData(keyPasswordSalt, secret, iv);
+        byte[] cipheredIntegrityData = CipheringTools.cipherData(integrityData, secret, iv);
 
-        return new IntegrityData(/*KEYSTORE_MAJOR_VERSION, KEYSTORE_VERSION,*/ salt, iv, cipheredkeyPasswordSalt, keyPasswordSaltHash);
+        return new IntegrityData(/*KEYSTORE_MAJOR_VERSION, KEYSTORE_VERSION,*/ salt, iv, cipheredIntegrityData, integrityDataHash);
     }
     
     public SecretKey getMasterKey(char[] masterPassword) throws NoSuchAlgorithmException, InvalidKeySpecException

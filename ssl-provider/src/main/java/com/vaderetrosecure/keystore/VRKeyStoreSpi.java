@@ -10,6 +10,7 @@ import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyStoreException;
 import java.security.KeyStoreSpi;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +22,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,13 +44,15 @@ import javax.naming.ldap.Rdn;
 
 import org.apache.log4j.Logger;
 
+import com.vaderetrosecure.keystore.dao.CipheringTools;
 import com.vaderetrosecure.keystore.dao.DAOHelper;
+import com.vaderetrosecure.keystore.dao.IntegrityData;
+import com.vaderetrosecure.keystore.dao.KeyEntry;
+import com.vaderetrosecure.keystore.dao.KeyEntryType;
+import com.vaderetrosecure.keystore.dao.KeyProtection;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
-import com.vaderetrosecure.keystore.dao.KeyEntry;
-import com.vaderetrosecure.keystore.dao.KeyEntryType;
-import com.vaderetrosecure.keystore.dao.IntegrityData;
 
 /**
  * @author ahonore
@@ -60,11 +64,13 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 
     private KeyStoreDAO keystoreDAO;
     private IntegrityData integrityData;
+    private SecretKey masterKey;
     
     public VRKeyStoreSpi()
     {
         keystoreDAO = null;
         integrityData = null;
+        masterKey = null;
 
         try
         {
@@ -90,9 +96,20 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
-			PrivateKey pk = DAOHelper.getPrivateKey(keystoreDAO, integrityData, alias);
-			if (pk != null)
-			    return pk;
+			KeyProtection kp = keystoreDAO.getKeyProtection(alias);
+			SecretKey keyPass = CipheringTools.getAESSecretKey(password, integrityData.getKeyPasswordSalt(masterKey));
+			
+//			PrivateKey pk = DAOHelper.getPrivateKey(keystoreDAO, integrityData, alias);
+//			if (pk != null)
+//			    return pk;
+
+			List<KeyEntry> entries = keystoreDAO.getKeyEntry(alias, KeyEntryType.PRIVATE_KEY);
+			if (!entries.isEmpty())
+			{
+			    KeyEntry kse = entries.get(0);
+		        KeyFactory kf = KeyFactory.getInstance(kse.getAlgorithm());
+		            return kf.generatePrivate(new PKCS8EncodedKeySpec(keyStoreMetaData.decipherKeyEntry(null, kse.getData())));
+			}
 
 			List<KeyEntry> entries = keystoreDAO.getKeyEntry(alias, KeyEntryType.SECRET_KEY);
             if (!entries.isEmpty())
@@ -439,7 +456,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
             LOG.info(e);
             try
             {
-                keystoreDAO.createSchema();
+                keystoreDAO.checkDAOStructure();
                 integrityData = IntegrityData.generate(password);
                 keystoreDAO.setIntegrityData(integrityData);
             }
@@ -453,7 +470,8 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 
         try
         {
-            integrityData.checkIntegrity(password);
+            masterKey = integrityData.getMasterKey(password);
+            integrityData.checkIntegrity(masterKey);
         }
         catch (UnrecoverableKeyException | InvalidKeySpecException e)
         {

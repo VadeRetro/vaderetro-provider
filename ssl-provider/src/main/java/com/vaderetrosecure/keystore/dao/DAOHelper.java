@@ -67,7 +67,7 @@ public final class DAOHelper
 		List<KeyEntry> entries = keyStoreDAO.getKeyEntry(alias, KeyEntryType.CERTIFICATE);
 		if (entries.isEmpty())
 			return Collections.emptyList();
-            	
+
 		List<Certificate> certChain = new ArrayList<>();
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
 		for (KeyEntry kse : entries)

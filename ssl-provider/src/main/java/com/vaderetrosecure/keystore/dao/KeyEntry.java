@@ -3,44 +3,41 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 /**
  * @author ahonore
  *
  */
-public class KeyEntry
+abstract class KeyEntry
 {
     private String alias;
-    private KeyEntryType entryType;
-    private int rank;
     private Date creationDate;
     private String algorithm;
-    private byte[] data;
-    private List<String> names;
+    private byte[] cipheredKey;
 
     public KeyEntry()
     {
-        this("", KeyEntryType.KEY, 0, Date.from(Instant.now()), "", null);
+        this("", 0, Date.from(Instant.now()), "", new byte[]{});
     }
 
-    public KeyEntry(String alias, KeyEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data)
-    {
-        this(alias, entryType, rank, creationDate, algorithm, data, new ArrayList<>());
-    }
-
-    public KeyEntry(String alias, KeyEntryType entryType, int rank, Date creationDate, String algorithm, byte[] data, List<String> names)
+    public KeyEntry(String alias, int rank, Date creationDate, String algorithm, byte[] cipheredKey)
     {
         this.alias = alias;
-        this.entryType = entryType;
-        this.rank = rank;
         this.creationDate = creationDate;
         this.algorithm = algorithm;
-        this.data = data;
-        this.names = names;
+        this.cipheredKey = cipheredKey;
     }
 
     public String getAlias()
@@ -51,26 +48,6 @@ public class KeyEntry
     public void setAlias(String alias)
     {
         this.alias = alias;
-    }
-
-    public KeyEntryType getEntryType()
-    {
-        return entryType;
-    }
-
-    public void setEntryType(KeyEntryType entryType)
-    {
-        this.entryType = entryType;
-    }
-
-    public int getRank()
-    {
-        return rank;
-    }
-
-    public void setRank(int rank)
-    {
-        this.rank = rank;
     }
 
     public Date getCreationDate()
@@ -93,23 +70,17 @@ public class KeyEntry
         this.algorithm = algorithm;
     }
 
-    public byte[] getData()
+    public byte[] getCipheredKey()
     {
-        return data;
+        return cipheredKey;
     }
 
-    public void setData(byte[] data)
+    public void setCipheredKey(byte[] cipheredKey)
     {
-        this.data = data;
+        this.cipheredKey = cipheredKey;
     }
 
-    public List<String> getNames()
-    {
-        return names;
-    }
+    public abstract Key getKey(KeyProtection keyProtection, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException;
 
-    public void setNames(List<String> names)
-    {
-        this.names = names;
-    }
+    public abstract Key getKey(char[] password, byte[] salt, byte[] iv) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException;
 }

@@ -3,6 +3,7 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
+import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -14,12 +15,12 @@ import java.util.List;
 public interface KeyStoreDAO
 {
     /**
-     * Create tables of the databases.
-     * Be aware that this method first try to delete all tables if exist and create the database from scratch.
+     * Check the DAO structure.
+     * Update the underlying data store if needed.
      * 
      * @throws KeyStoreDAOException
      */
-    void createSchema() throws KeyStoreDAOException;
+    void checkDAOStructure() throws KeyStoreDAOException;
     
     IntegrityData getIntegrityData() throws KeyStoreDAOException;
     
@@ -27,25 +28,30 @@ public interface KeyStoreDAO
     
     List<String> getAliases() throws KeyStoreDAOException;
     
-    Version getVersion() throws KeyStoreDAOException;
-    
     /**
      * Get aliases that refer to private key/certificate pairs.
      * It is useful for server authentication.
      * 
-     * @param keyType
+     * @param keyType the algorithm name used to create the key and certificate pair (i.e.: EC_EC, RSA, DSA...).
      * @return
      * @throws KeyStoreDAOException
      */
     List<String> getAuthenticationAliases(String keyType) throws KeyStoreDAOException;
     
-    List<KeyEntry> getKeyEntry(String alias, KeyEntryType keyStoreEntryType) throws KeyStoreDAOException;
-    
-    List<KeyEntry> getKeyEntry(String alias) throws KeyStoreDAOException;
-    
-    List<KeyEntry> getKeyEntriesByName(String name) throws KeyStoreDAOException;
+    KeyEntry getKeyEntry(String alias) throws KeyStoreDAOException;
     
     KeyProtection getKeyProtection(String alias) throws KeyStoreDAOException;
+    
+    CertificateEntry getCertificate(String name) throws KeyStoreDAOException;
+    
+    /**
+     * Return the certificate chain given by the name of the first certificate.
+     * 
+     * @param name
+     * @return
+     * @throws KeyStoreDAOException
+     */
+    List<CertificateEntry> getCertificateChain(String name) throws KeyStoreDAOException;
     
     /**
      * Return the date of the creation of the entry in the structure.
@@ -58,9 +64,11 @@ public interface KeyStoreDAO
     
     void setIntegrityData(IntegrityData integrityData) throws KeyStoreDAOException;
     
-    void setKeyEntries(Collection<KeyEntry> keyEntries) throws KeyStoreDAOException;
+    void setKeyEntry(KeyEntry keyEntry) throws KeyStoreDAOException;
     
-    void setKeyProtections(Collection<KeyProtection> keyProtections) throws KeyStoreDAOException;
-    
+    void setKeyProtections(KeyProtection keyProtection) throws KeyStoreDAOException;
+
+    void setCertificateEntry(CertificateEntry certificateEntry) throws KeyStoreDAOException;
+
     void deleteEntries(Collection<String> aliases) throws KeyStoreDAOException;
 }
