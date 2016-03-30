@@ -20,7 +20,7 @@ import javax.crypto.NoSuchPaddingException;
  * @author ahonore
  *
  */
-abstract class KeyEntry
+public abstract class KeyEntry
 {
     private String alias;
     private Date creationDate;

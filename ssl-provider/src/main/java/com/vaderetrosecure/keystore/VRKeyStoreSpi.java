@@ -96,7 +96,26 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         {
 			checkKeyStoreDAOIsLoaded();
 
+			KeyEntry ke = keystoreDAO.getKeyEntry(alias);
+			if (ke == null)
+				return null;
+
+			IntegrityData id = keystoreDAO.getIntegrityData();
+			if (id == null)
+			{
+				final String msg = "IntegrityData not found";
+	            LOG.error(msg);
+	            throw new UnrecoverableKeyException(msg);
+			}
+			
 			KeyProtection kp = keystoreDAO.getKeyProtection(alias);
+			if (kp == null)
+			{
+				final String msg = "KeyProtection not found";
+	            LOG.error(msg);
+	            throw new UnrecoverableKeyException(msg);
+			}
+
 			SecretKey keyPass = CipheringTools.getAESSecretKey(password, integrityData.getKeyPasswordSalt(masterKey));
 			
 //			PrivateKey pk = DAOHelper.getPrivateKey(keystoreDAO, integrityData, alias);
