@@ -41,21 +41,11 @@ public class KeyProtection
         this.cipheredKeyProtection = cipheredKeyProtection;
     }
     
-    public KeyProtection(String alias, byte[] iv, SecretKey key, PrivateKey privateKey)
+    public KeyProtection(String alias, byte[] iv, SecretKey key, PrivateKey privateKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
         this.alias = alias;
         this.iv = iv;
-        try
-        {
-            setKeyProtection(key, privateKey);
-        }
-        catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e)
-        {
-            LOG.debug(e, e);
-            LOG.error(e);
-            
-            this.cipheredKeyProtection = new byte[]{};
-        }
+        setKeyProtection(key, privateKey);
     }
 
     public String getAlias()
