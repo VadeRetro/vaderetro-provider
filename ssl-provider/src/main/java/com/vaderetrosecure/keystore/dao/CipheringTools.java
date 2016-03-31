@@ -38,6 +38,22 @@ final class CipheringTools
     {
     }
     
+    public static byte[] generateIV()
+    {
+        byte[] iv = new byte[16];
+        LOCK.lock();
+        try
+        {
+            RANDOM.nextBytes(iv);
+        }
+        finally
+        {
+            LOCK.unlock();
+        }
+        
+        return iv;
+    }
+    
     public static byte[] cipherData(byte[] rawData, SecretKey aesSecretKey, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         // 16 bytes of salt will be added at the beginning of the key

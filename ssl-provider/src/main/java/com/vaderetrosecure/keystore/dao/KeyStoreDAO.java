@@ -3,9 +3,6 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import java.security.cert.Certificate;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -40,14 +37,12 @@ public interface KeyStoreDAO
     
     KeyEntry getKeyEntry(String alias) throws KeyStoreDAOException;
     
-    KeyProtection getKeyProtection(String alias) throws KeyStoreDAOException;
-    
     CertificateEntry getCertificate(String name) throws KeyStoreDAOException;
     
     /**
      * Return the certificate chain given by the name of the first certificate.
      * 
-     * @param name
+     * @param name the alias or one of the names of the certificate.
      * @return
      * @throws KeyStoreDAOException
      */
@@ -60,15 +55,17 @@ public interface KeyStoreDAO
      * @return
      * @throws KeyStoreDAOException
      */
-    Date getCreationDate(String alias) throws KeyStoreDAOException;
+    DateEntry getDateEntry(String alias) throws KeyStoreDAOException;
+    
+    void setDateEntry(String alias) throws KeyStoreDAOException;
     
     void setIntegrityData(IntegrityData integrityData) throws KeyStoreDAOException;
     
-    void setKeyEntry(KeyEntry keyEntry) throws KeyStoreDAOException;
-    
-    void setKeyProtections(KeyProtection keyProtection) throws KeyStoreDAOException;
+    void setEntry(KeyEntry keyEntry, List<CertificateEntry> certificateEntries) throws KeyStoreDAOException;
 
     void setCertificateEntry(CertificateEntry certificateEntry) throws KeyStoreDAOException;
 
-    void deleteEntries(Collection<String> aliases) throws KeyStoreDAOException;
+    void deleteKeyEntry(String alias) throws KeyStoreDAOException;
+
+    void deleteCertificateEntry(String alias) throws KeyStoreDAOException;
 }

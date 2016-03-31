@@ -12,10 +12,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,32 +33,26 @@ public class CertificateEntry
     private final static Logger LOG = Logger.getLogger(CertificateEntry.class);
 
     private String alias;
-    private int rank;
-    private Date creationDate;
     private String algorithm;
     private byte[] encodedCertificate;
     private List<String> names;
 
     public CertificateEntry()
     {
-        this("", 0, Date.from(Instant.now()), "", new byte[]{}, new ArrayList<>());
+        this("", "", new byte[]{}, new ArrayList<>());
     }
 
-    public CertificateEntry(String alias, int rank, Date creationDate, String algorithm, byte[] encodedCertificate, List<String> names)
+    public CertificateEntry(String alias, String algorithm, byte[] encodedCertificate, List<String> names)
     {
         this.alias = alias;
-        this.rank = rank;
-        this.creationDate = creationDate;
         this.algorithm = algorithm;
         this.encodedCertificate = encodedCertificate;
         this.names = names;
     }
 
-    public CertificateEntry(String alias, int rank, Date creationDate, Certificate certificate)
+    public CertificateEntry(String alias, Certificate certificate) throws CertificateEncodingException, CertificateParsingException, InvalidNameException
     {
         this.alias = alias;
-        this.rank = rank;
-        this.creationDate = creationDate;
         if (certificate == null)
         {
             this.algorithm = "";
@@ -70,20 +62,8 @@ public class CertificateEntry
         else
         {
             this.algorithm = certificate.getPublicKey().getAlgorithm();
-            try
-            {
-                this.encodedCertificate = certificate.getEncoded();
-                this.names = extractCertificateNames(certificate);
-            }
-            catch (CertificateEncodingException | CertificateParsingException | InvalidNameException e)
-            {
-                LOG.debug(e, e);
-                LOG.error(e);
-                
-                this.algorithm = "";
-                this.encodedCertificate = new byte[]{};
-                this.names = new ArrayList<>();
-            }
+            this.encodedCertificate = certificate.getEncoded();
+            this.names = extractCertificateNames(certificate);
         }
     }
     
@@ -95,26 +75,6 @@ public class CertificateEntry
     public void setAlias(String alias)
     {
         this.alias = alias;
-    }
-
-    public int getRank()
-    {
-        return rank;
-    }
-
-    public void setRank(int rank)
-    {
-        this.rank = rank;
-    }
-
-    public Date getCreationDate()
-    {
-        return creationDate;
-    }
-
-    public void setCreationDate(Date creationDate)
-    {
-        this.creationDate = creationDate;
     }
 
     public String getAlgorithm()

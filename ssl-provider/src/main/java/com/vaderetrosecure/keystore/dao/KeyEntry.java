@@ -7,7 +7,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.util.Date;
@@ -26,19 +25,29 @@ public abstract class KeyEntry
     private Date creationDate;
     private String algorithm;
     private byte[] cipheredKey;
+    private LockedKeyProtection lockedKeyProtection;
 
     public KeyEntry()
     {
-        this("", 0, Date.from(Instant.now()), "", new byte[]{});
+        this("", Date.from(Instant.now()), "", new byte[]{}, null);
     }
 
-    public KeyEntry(String alias, int rank, Date creationDate, String algorithm, byte[] cipheredKey)
+    public KeyEntry(String alias, Date creationDate, String algorithm, byte[] cipheredKey, LockedKeyProtection lockedKeyProtection)
     {
         this.alias = alias;
         this.creationDate = creationDate;
         this.algorithm = algorithm;
         this.cipheredKey = cipheredKey;
+        this.lockedKeyProtection = lockedKeyProtection;
     }
+
+//    public KeyEntry(String alias, Date creationDate, Key key, char[] password, byte[] salt, byte[] iv) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+//    {
+//        this.alias = alias;
+//        this.creationDate = creationDate;
+//        this.algorithm = key.getAlgorithm();
+//        setKey(key, password, salt, iv);
+//    }
 
     public String getAlias()
     {
@@ -80,7 +89,17 @@ public abstract class KeyEntry
         this.cipheredKey = cipheredKey;
     }
 
-    public abstract Key getKey(KeyProtection keyProtection, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException;
+    public LockedKeyProtection getLockedKeyProtection()
+    {
+        return lockedKeyProtection;
+    }
 
-    public abstract Key getKey(char[] password, byte[] salt, byte[] iv) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException;
+    public void setLockedKeyProtection(LockedKeyProtection lockedKeyProtection)
+    {
+        this.lockedKeyProtection = lockedKeyProtection;
+    }
+
+    public abstract Key getKey(KeyProtection keyProtection) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException;
+
+    public abstract void setKey(Key key, KeyProtection keyProtection) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException;
 }

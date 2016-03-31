@@ -38,22 +38,22 @@ public class IntegrityData
 //    private String version;
     private byte[] salt;
     private byte[] iv;
-    private byte[] cipheredkeyPasswordSalt;
-    private byte[] keyPasswordSaltHash;
+    private byte[] cipheredData;
+    private byte[] dataHash;
     
     public IntegrityData()
     {
         this(/*0, "",*/ new byte[]{}, new byte[]{}, new byte[]{}, new byte[]{});
     }
 
-    public IntegrityData(/*int majorVersion, String version,*/ byte[] salt, byte[] iv, byte[] cipheredkeyPasswordSalt, byte[] keyPasswordSaltHash)
+    public IntegrityData(/*int majorVersion, String version,*/ byte[] salt, byte[] iv, byte[] cipheredData, byte[] dataHash)
     {
 //        setMajorVersion(majorVersion);
 //        setVersion(version);
         setSalt(salt);
         setIV(iv);
-        setCipheredkeyPasswordSalt(cipheredkeyPasswordSalt);
-        setKeyPasswordSaltHash(keyPasswordSaltHash);
+        setCipheredData(cipheredData);
+        setDataHash(dataHash);
     }
 
 //    public int getMajorVersion()
@@ -96,24 +96,24 @@ public class IntegrityData
         this.iv = iv;
     }
 
-    public byte[] getCipheredkeyPasswordSalt()
+    public byte[] getCipheredData()
     {
-        return cipheredkeyPasswordSalt;
+        return cipheredData;
     }
 
-    public void setCipheredkeyPasswordSalt(byte[] cipheredkeyPasswordSalt)
+    public void setCipheredData(byte[] cipheredData)
     {
-        this.cipheredkeyPasswordSalt = cipheredkeyPasswordSalt;
+        this.cipheredData = cipheredData;
     }
 
-    public byte[] getKeyPasswordSaltHash()
+    public byte[] getDataHash()
     {
-        return keyPasswordSaltHash;
+        return dataHash;
     }
 
-    public void setKeyPasswordSaltHash(byte[] keyPasswordSaltHash)
+    public void setDataHash(byte[] dataHash)
     {
-        this.keyPasswordSaltHash = keyPasswordSaltHash;
+        this.dataHash = dataHash;
     }
     
     public static IntegrityData generate(char[] password) throws GeneralSecurityException, UnrecoverableKeyException
@@ -149,8 +149,8 @@ public class IntegrityData
         try
         {
             MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
-            byte[] keyPasswordSalt = CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
-            if (!Arrays.equals(getKeyPasswordSaltHash(), sha2.digest(keyPasswordSalt)))
+            byte[] data = CipheringTools.decipherData(getCipheredData(), masterKey, getIV());
+            if (!Arrays.equals(getDataHash(), sha2.digest(data)))
                 throw new UnrecoverableKeyException("integrity check failed");
         }
         catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e)
@@ -160,23 +160,4 @@ public class IntegrityData
             throw new UnrecoverableKeyException("integrity check failed");
         }
     }
-    
-    public byte[] getKeyPasswordSalt(SecretKey masterKey) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
-    {
-        return CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
-    }
-    
-//    public byte[] cipherKeyEntry(char[] keyPassword, byte[] rawKeyEntry) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
-//    {
-//        SecretKey secret = CipheringTools.getAESSecretKey(keyPassword, getSalt());
-//        byte[] rawKeyIV = CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
-//        return CipheringTools.cipherData(rawKeyEntry, secret, rawKeyIV);
-//    }
-    
-//    public byte[] decipherKeyEntry(char[] keyPassword, byte[] cipheredKeyEntry) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
-//    {
-//        SecretKey secret = CipheringTools.getAESSecretKey(keyPassword, getSalt());
-//        byte[] rawKeyIV = CipheringTools.decipherData(getCipheredkeyPasswordSalt(), masterKey, getIV());
-//        return CipheringTools.decipherData(cipheredKeyEntry, secret, rawKeyIV);
-//    }
 }
