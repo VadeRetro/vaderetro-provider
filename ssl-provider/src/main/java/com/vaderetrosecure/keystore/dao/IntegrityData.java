@@ -4,12 +4,10 @@
 package com.vaderetrosecure.keystore.dao;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
@@ -29,13 +27,6 @@ public class IntegrityData
 {
     private static final Logger LOG = Logger.getLogger(IntegrityData.class);
     
-//    public static final int KEYSTORE_MAJOR_VERSION = 1;
-//    public static final String KEYSTORE_VERSION = "1.0.0";
-    
-    private static final SecureRandom random = new SecureRandom();
-
-//    private int majorVersion;
-//    private String version;
     private byte[] salt;
     private byte[] iv;
     private byte[] cipheredData;
@@ -43,38 +34,54 @@ public class IntegrityData
     
     public IntegrityData()
     {
-        this(/*0, "",*/ new byte[]{}, new byte[]{}, new byte[]{}, new byte[]{});
+        this(CipheringTools.generateRandomBytes(16), CipheringTools.generateIV(), new byte[]{}, new byte[]{});
     }
 
-    public IntegrityData(/*int majorVersion, String version,*/ byte[] salt, byte[] iv, byte[] cipheredData, byte[] dataHash)
+    public IntegrityData(byte[] salt, byte[] iv, byte[] cipheredData, byte[] dataHash)
     {
-//        setMajorVersion(majorVersion);
-//        setVersion(version);
         setSalt(salt);
         setIV(iv);
         setCipheredData(cipheredData);
         setDataHash(dataHash);
     }
 
-//    public int getMajorVersion()
-//    {
-//        return majorVersion;
-//    }
-//
-//    public void setMajorVersion(int majorVersion)
-//    {
-//        this.majorVersion = majorVersion;
-//    }
-//
-//    public String getVersion()
-//    {
-//        return version;
-//    }
-//
-//    public void setVersion(String version)
-//    {
-//        this.version = version;
-//    }
+    /**
+     * Generate a new integrity ciphering.
+     * Can be used change the password without loosing salt data.
+     * 
+     * @param salt
+     * @param password
+     * @throws InvalidKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     * @throws NoSuchPaddingException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
+    public IntegrityData(byte[] salt, char[] password) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    {
+        setSalt(salt);
+        generateIntegrity(password);
+    }
+
+    /**
+     * Generate a completely new integrity data object.
+     * 
+     * @param password
+     * @throws InvalidKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     * @throws NoSuchPaddingException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
+    public IntegrityData(char[] password) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+    {
+        this();
+        generateIntegrity(password);
+    }
 
     public byte[] getSalt()
     {
@@ -116,40 +123,23 @@ public class IntegrityData
         this.dataHash = dataHash;
     }
     
-    public static IntegrityData generate(char[] password) throws GeneralSecurityException, UnrecoverableKeyException
+    private void generateIntegrity(char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
-        byte[] salt = new byte[16];
-        random.nextBytes(salt);
-
-        byte[] integrityData = new byte[64];
-        random.nextBytes(integrityData);
-
-        byte[] iv = new byte[16];
-        random.nextBytes(iv);
-
+        setIV(CipheringTools.generateIV());
+        byte[] integrityData = CipheringTools.generateRandomBytes(64);
         MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
-        byte[] integrityDataHash = sha2.digest(integrityData);
-        SecretKey secret = CipheringTools.getAESSecretKey(password, salt);
-        byte[] cipheredIntegrityData = CipheringTools.cipherData(integrityData, secret, iv);
-
-        return new IntegrityData(/*KEYSTORE_MAJOR_VERSION, KEYSTORE_VERSION,*/ salt, iv, cipheredIntegrityData, integrityDataHash);
+        setDataHash(sha2.digest(integrityData));
+        SecretKey secret = CipheringTools.getAESSecretKey(password, getSalt());
+        setCipheredData(CipheringTools.cipherData(integrityData, secret, getIV()));
     }
     
-    public SecretKey getMasterKey(char[] masterPassword) throws NoSuchAlgorithmException, InvalidKeySpecException
+    public void checkIntegrity(char[] password) throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, InvalidKeySpecException
     {
-        return CipheringTools.getAESSecretKey(masterPassword, getSalt());
-    }
-    
-    public void checkIntegrity(SecretKey masterKey) throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, InvalidKeySpecException
-    {
-//        if ((KEYSTORE_MAJOR_VERSION != getMajorVersion()) || !KEYSTORE_VERSION.equals(getVersion()))
-//            throw new IOException("bad version: expected " + KEYSTORE_VERSION);
-        
-        // create secret key to decipher 
         try
         {
+            SecretKey secret = CipheringTools.getAESSecretKey(password, getSalt());
             MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
-            byte[] data = CipheringTools.decipherData(getCipheredData(), masterKey, getIV());
+            byte[] data = CipheringTools.decipherData(getCipheredData(), secret, getIV());
             if (!Arrays.equals(getDataHash(), sha2.digest(data)))
                 throw new UnrecoverableKeyException("integrity check failed");
         }
