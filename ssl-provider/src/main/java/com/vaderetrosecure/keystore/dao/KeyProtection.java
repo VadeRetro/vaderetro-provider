@@ -45,7 +45,7 @@ public class KeyProtection
     {
         this.alias = lockedKeyProtection.getAlias();
         this.iv = lockedKeyProtection.getIV();
-        this.key = new SecretKeySpec(CipheringTools.decipherData(lockedKeyProtection.getCipheredKey(), publicKey), "AES");
+        this.key = unlockCipheredKey(lockedKeyProtection.getCipheredKey(), publicKey);
     }
 
     public String getAlias()
@@ -90,8 +90,31 @@ public class KeyProtection
         return new KeyProtection(alias, iv, sk);
     }
     
+    private SecretKey unlockCipheredKey(byte[] cipheredKey, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+    {
+        SecretKey sk = null;
+        if (publicKey == null)
+        {
+            LOG.warn("No public key, now try to unlock a readable key protection");
+            sk = new SecretKeySpec(cipheredKey, "AES");
+        }
+        else
+            sk = new SecretKeySpec(CipheringTools.decipherData(cipheredKey, publicKey), "AES");
+        
+        return sk;
+    }
+
     public LockedKeyProtection getLockedKeyProtection(PrivateKey privateKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
-        return new LockedKeyProtection(getAlias(), getIV(), CipheringTools.cipherData(getKey().getEncoded(), privateKey));
+        LockedKeyProtection lkp = null;
+        if (privateKey == null)
+        {
+            LOG.warn("No private key, so key protection will be readable");
+            lkp = new LockedKeyProtection(getAlias(), getIV(), getKey().getEncoded());
+        }
+        else
+            lkp = new LockedKeyProtection(getAlias(), getIV(), CipheringTools.cipherData(getKey().getEncoded(), privateKey));
+        
+        return lkp;
     }
 }
