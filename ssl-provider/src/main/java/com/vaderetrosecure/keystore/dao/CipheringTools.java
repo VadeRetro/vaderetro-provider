@@ -38,20 +38,25 @@ final class CipheringTools
     {
     }
     
-    public static byte[] generateIV()
+    public static byte[] generateRandomBytes(int length)
     {
-        byte[] iv = new byte[16];
+        byte[] b = new byte[length];
         LOCK.lock();
         try
         {
-            RANDOM.nextBytes(iv);
+            RANDOM.nextBytes(b);
         }
         finally
         {
             LOCK.unlock();
         }
         
-        return iv;
+        return b;
+    }
+    
+    public static byte[] generateIV()
+    {
+        return generateRandomBytes(16);
     }
     
     public static byte[] cipherData(byte[] rawData, SecretKey aesSecretKey, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
