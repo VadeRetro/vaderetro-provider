@@ -25,7 +25,7 @@ public class PrivateKeyEntry extends KeyEntry
 {
     public PrivateKeyEntry(String alias, Date creationDate, PrivateKey key, KeyProtection keyProtection) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
-        super(alias, creationDate, key.getAlgorithm(), null);
+        super(alias, creationDate, key.getAlgorithm(), null, null);
         setKey(key, keyProtection);
     }
 
