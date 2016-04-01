@@ -68,7 +68,7 @@ public class VadeRetroProviderTest
             KeyStoreDAO ksdao = mock(KeyStoreDAO.class);
             try
             {
-                when(ksdao.getIntegrityData()).thenReturn(IntegrityData.generate(null));
+                when(ksdao.getIntegrityData()).thenReturn(new IntegrityData(null));
             }
             catch (Exception e)
             {
