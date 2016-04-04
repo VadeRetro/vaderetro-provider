@@ -6,10 +6,15 @@ package com.vaderetrosecure.keystore;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyStoreException;
 import java.security.KeyStoreSpi;
 import java.security.NoSuchAlgorithmException;
@@ -20,6 +25,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +60,8 @@ import com.vaderetrosecure.keystore.dao.SecretKeyEntry;
 public class VRKeyStoreSpi extends KeyStoreSpi
 {
     private final static Logger LOG = Logger.getLogger(VRKeyStoreSpi.class);
+
+    private final static String VR_KEYSTORE_PRIVATE_KEY_FILE = "com.vaderetrosecure.key.private";
 
     private KeyStoreDAO keystoreDAO;
 //    private IntegrityData integrityData;
@@ -482,6 +490,9 @@ public class VRKeyStoreSpi extends KeyStoreSpi
                 keystoreDAO.setIntegrityData(id);
             }
             
+            if (privateKey == null)
+                privateKey = loadPrivateKeyProtection();
+            
             if (password != null)
                 id.checkIntegrity(password);
         }
@@ -508,5 +519,31 @@ public class VRKeyStoreSpi extends KeyStoreSpi
             LOG.fatal(errorMsg);
             throw new IOException(errorMsg);
         }
+    }
+    
+    private PrivateKey loadPrivateKeyProtection()
+    {
+        URL url = Thread.currentThread().getContextClassLoader().getResource(VR_KEYSTORE_PRIVATE_KEY_FILE);
+        if (url == null)
+            return null;
+
+        try
+        {
+            byte[] encKey = Files.readAllBytes(Paths.get(url.toURI()));
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return kf.generatePrivate(new PKCS8EncodedKeySpec(encKey));
+        }
+        catch (IOException | URISyntaxException e)
+        {
+            LOG.debug(e, e);
+            LOG.warn("private key not found: keystore will not be protected", e);
+        }
+        catch (NoSuchAlgorithmException | InvalidKeySpecException e)
+        {
+            LOG.debug(e, e);
+            LOG.warn("bad private key format: keystore will not be protected", e);
+        }
+
+        return null;
     }
 }
