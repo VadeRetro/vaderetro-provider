@@ -128,7 +128,7 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
         catch (NoSuchAlgorithmException | InvalidKeySpecException e)
         {
             LOG.debug(e, e);
-            LOG.warn("bad private key format: if a private key was used, unprotecting will throw errors", e);
+            LOG.warn("bad public key format: if a private key was used, unprotecting will throw errors", e);
         }
 
         return null;
