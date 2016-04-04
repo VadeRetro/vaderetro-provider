@@ -3,16 +3,12 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import org.apache.log4j.Logger;
-
 /**
  * @author ahonore
  *
  */
 public class LockedKeyProtection
 {
-    private final static Logger LOG = Logger.getLogger(LockedKeyProtection.class);
-
     private String alias;
     private byte[] iv;
     private byte[] cipheredKey;
@@ -54,8 +50,8 @@ public class LockedKeyProtection
         return cipheredKey;
     }
 
-    public void setCipheredKey(byte[] cipheredKeyProtection)
+    public void setCipheredKey(byte[] cipheredKey)
     {
-        this.cipheredKey = cipheredKeyProtection;
+        this.cipheredKey = cipheredKey;
     }
 }
