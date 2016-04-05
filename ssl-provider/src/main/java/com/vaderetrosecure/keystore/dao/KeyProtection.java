@@ -95,7 +95,7 @@ public class KeyProtection
         SecretKey sk = null;
         if (publicKey == null)
         {
-            LOG.warn("No public key, now try to unlock a readable key protection");
+            LOG.debug("No public key, now try to unlock a readable key protection");
             sk = new SecretKeySpec(cipheredKey, "AES");
         }
         else
@@ -109,7 +109,7 @@ public class KeyProtection
         LockedKeyProtection lkp = null;
         if (privateKey == null)
         {
-            LOG.warn("No private key, so key protection will be readable");
+            LOG.debug("No private key, so key protection will be readable");
             lkp = new LockedKeyProtection(getAlias(), getIV(), getKey().getEncoded());
         }
         else
