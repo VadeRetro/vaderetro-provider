@@ -42,12 +42,12 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
     private final static String VR_KEYSTORE_PUBLIC_KEY_FILE = "com.vaderetrosecure.key.public";
 
 	private KeyManager keyManagers[];
-	private PublicKey publicKey;
+//	private PublicKey publicKey;
 	
 	public VRKeyManagerFactorySpi()
 	{
 	    keyManagers = null;
-	    publicKey = null;
+//	    publicKey = null;
 	}
 
     @Override
@@ -79,13 +79,13 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 		{
 			KeyStoreDAO ksdao = KeyStoreDAOFactory.getInstance().getKeyStoreDAO();
 			
-			if (publicKey == null)
-			    publicKey = loadPublicKeyProtection();
+//			if (publicKey == null)
+//			    publicKey = loadPublicKeyProtection();
 			
 			IntegrityData integrityData = ksdao.getIntegrityData();
 			if (password != null)
 			    integrityData.checkIntegrity(password);
-	    	keyManagers = new KeyManager[] { new SNIX509ExtendedKeyManager(ksdao, integrityData) };
+	    	keyManagers = new KeyManager[] { new SNIX509ExtendedKeyManager(ksdao, loadPublicKeyProtection()) };
 		}
 		catch (KeyStoreDAOException e)
 		{
