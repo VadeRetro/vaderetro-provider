@@ -79,7 +79,7 @@ public class VRKeyStoreSpiTest
     @Test(expected=IOException.class)
     public void testLoadWrongPassword() throws IOException, KeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException
     {
-        when(ksdao.getMetaData()).thenThrow(new KeyStoreDAOException("")).thenReturn(KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray()));
+//        when(ksdao.getMetaData()).thenReturn(KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray())).thenThrow(new KeyStoreDAOException(""));
         keystore.engineLoad(null, MASTER_PASSWORD.toCharArray());
         keystore.engineLoad(null, "sfkghshiistgohstio".toCharArray());
     }
