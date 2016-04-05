@@ -30,7 +30,6 @@ import org.apache.log4j.Logger;
 
 import com.vaderetrosecure.keystore.dao.CertificateData;
 import com.vaderetrosecure.keystore.dao.CertificatesEntry;
-import com.vaderetrosecure.keystore.dao.IntegrityData;
 import com.vaderetrosecure.keystore.dao.KeyEntry;
 import com.vaderetrosecure.keystore.dao.KeyProtection;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
@@ -48,11 +47,11 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     private KeyStoreDAO keyStoreDAO;
     private PublicKey publicKey;
 
-    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, IntegrityData keyStoreMetaData)
+    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, PublicKey publicKey)
     {
         super();
         this.keyStoreDAO = keyStoreDAO;
-        publicKey = null;
+        this.publicKey = publicKey;
     }
 
     KeyStoreDAO getKeyStoreDAO()
