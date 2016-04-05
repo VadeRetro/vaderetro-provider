@@ -9,9 +9,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
 
 import javax.xml.bind.DatatypeConverter;
+
+import org.apache.log4j.Logger;
 
 /**
  * @author ahonore
