@@ -6,7 +6,6 @@ package com.vaderetrosecure.keystore;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -463,17 +462,17 @@ public class VRKeyStoreSpi extends KeyStoreSpi
             
             keyStoreMetaData.checkIntegrity(password);
         }
-        catch (KeyStoreDAOException e)
-        {
-            LOG.debug(e, e);
-            LOG.error(e);
-            throw new IOException(e);
-        }
-        catch (GeneralSecurityException e)
+        catch (NoSuchAlgorithmException  e)
         {
             LOG.debug(e, e);
             LOG.error(e);
             throw new NoSuchAlgorithmException(e);
+        }
+        catch (Exception e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
+            throw new IOException(e);
         }
     }
 
