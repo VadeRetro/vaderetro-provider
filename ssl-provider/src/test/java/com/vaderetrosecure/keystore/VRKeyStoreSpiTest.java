@@ -25,14 +25,12 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
-import java.security.SecureRandom;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.Collections;
@@ -43,8 +41,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.naming.InvalidNameException;
 
@@ -72,10 +68,11 @@ import com.vaderetrosecure.keystore.dao.PrivateKeyEntry;
  */
 public class VRKeyStoreSpiTest
 {
+    private final static Logger LOG = Logger.getLogger(VRKeyStoreSpiTest.class);
+
     private static final String MASTER_PASSWORD = "master-password";
     private static final String SECRET_KEY_ALIAS = "secret-alias";
     private static final String PRIVATE_KEY_AND_CERTIFICATE_ALIAS = "private-certificate-alias";
-    private final static Logger LOG = Logger.getLogger(VRKeyStoreSpiTest.class);
 
     private static SecretKey secretKey;
     private static PrivateKey privKey;
@@ -90,10 +87,10 @@ public class VRKeyStoreSpiTest
 
         try
         {
-        URL url = Thread.currentThread().getContextClassLoader().getResource("test.com.key");
-        byte[] encData = Files.readAllBytes(Paths.get(url.toURI()));
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        privKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encData));
+            URL url = Thread.currentThread().getContextClassLoader().getResource("test.com.key");
+            byte[] encData = Files.readAllBytes(Paths.get(url.toURI()));
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            privKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encData));
         }
         catch (Exception e)
         {
@@ -111,7 +108,6 @@ public class VRKeyStoreSpiTest
     @Before
     public void setUp() throws Exception
     {
-        
         IntegrityData id = new IntegrityData(MASTER_PASSWORD.toCharArray());
         ksdao = mock(KeyStoreDAO.class);
         when(ksdao.getIntegrityData()).thenReturn(id);
@@ -181,10 +177,7 @@ public class VRKeyStoreSpiTest
     @Test(expected=UnrecoverableKeyException.class)
     public void testEngineGetKeyEntryWithPrivateKey() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, KeyStoreDAOException, CertificateException, IOException, UnrecoverableKeyException
     {
-        SecureRandom sr = new SecureRandom();
-        byte[] iv = new byte[16];
-        sr.nextBytes(iv);
-        KeyProtection kp = new KeyProtection(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, iv, getAESSecretKey("password".toCharArray(), ksdao.getIntegrityData().getSalt()));
+        KeyProtection kp = KeyProtection.generateKeyProtection("password".toCharArray(), ksdao.getIntegrityData().getSalt());
         PrivateKeyEntry ske = new PrivateKeyEntry(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, Date.from(Instant.now()), privKey, kp);
         when(ksdao.getKeyEntry(anyString())).thenReturn(ske);
         
@@ -221,13 +214,5 @@ public class VRKeyStoreSpiTest
         {
             return null;
         }
-    }
-    
-    private static SecretKey getAESSecretKey(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException
-    {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password, salt, 65536, 256);
-        SecretKey tmp = factory.generateSecret(spec);
-        return new SecretKeySpec(tmp.getEncoded(), "AES");
     }
 }
