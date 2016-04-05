@@ -429,37 +429,51 @@ public class VRKeyStoreSpi extends KeyStoreSpi
     {
         checkKeyStoreDAOIsLoaded();
         
-        try
+        if (keyStoreMetaData == null)
         {
-            keyStoreMetaData = keystoreDAO.getMetaData();
-        }
-        catch (KeyStoreDAOException e)
-        {
-            LOG.debug(e, e);
-            LOG.info(e);
             try
             {
-                keystoreDAO.createSchema();
-                keyStoreMetaData = KeyStoreMetaData.generate(password);
-                keystoreDAO.setMetaData(keyStoreMetaData);
+                keyStoreMetaData = keystoreDAO.getMetaData();
             }
-            catch (GeneralSecurityException | KeyStoreDAOException ee)
+            catch (KeyStoreDAOException e)
             {
-                LOG.debug(ee, ee);
-                LOG.fatal(ee);
-                throw new NoSuchAlgorithmException(ee);
+                LOG.debug(e, e);
+                LOG.info(e);
+                try
+                {
+                    keystoreDAO.createSchema();
+                    keyStoreMetaData = keystoreDAO.getMetaData();
+                }
+                catch (KeyStoreDAOException ee)
+                {
+                    LOG.debug(ee, ee);
+                    LOG.fatal(ee);
+                    throw new IOException(ee);
+                }
             }
         }
 
         try
         {
+            if (keyStoreMetaData == null)
+            {
+                keyStoreMetaData = KeyStoreMetaData.generate(password);
+                keystoreDAO.setMetaData(keyStoreMetaData);
+            }
+            
             keyStoreMetaData.checkIntegrity(password);
         }
-        catch (UnrecoverableKeyException | InvalidKeySpecException e)
+        catch (KeyStoreDAOException e)
         {
             LOG.debug(e, e);
             LOG.error(e);
             throw new IOException(e);
+        }
+        catch (GeneralSecurityException e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
+            throw new NoSuchAlgorithmException(e);
         }
     }
 
