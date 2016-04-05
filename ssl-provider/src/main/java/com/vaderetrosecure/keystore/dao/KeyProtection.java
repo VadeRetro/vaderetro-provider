@@ -25,37 +25,24 @@ public class KeyProtection
 {
     private final static Logger LOG = Logger.getLogger(KeyProtection.class);
 
-    private String alias;
     private byte[] iv;
     private SecretKey key;
     
     public KeyProtection()
     {
-        this("", new byte[]{}, null);
+        this(new byte[]{}, null);
     }
     
-    public KeyProtection(String alias, byte[] iv, SecretKey key)
+    public KeyProtection(byte[] iv, SecretKey key)
     {
-        this.alias = alias;
         this.iv = iv;
         this.key = key;
     }
     
     public KeyProtection(LockedKeyProtection lockedKeyProtection, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
-        this.alias = lockedKeyProtection.getAlias();
         this.iv = lockedKeyProtection.getIV();
         this.key = unlockCipheredKey(lockedKeyProtection.getCipheredKey(), publicKey);
-    }
-
-    public String getAlias()
-    {
-        return alias;
-    }
-
-    public void setAlias(String alias)
-    {
-        this.alias = alias;
     }
 
     public byte[] getIV()
@@ -78,16 +65,16 @@ public class KeyProtection
         this.key = key;
     }
     
-    public static KeyProtection generateKeyProtection(String alias, char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException
+    public static KeyProtection generateKeyProtection(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException
     {
         byte[] iv = CipheringTools.generateIV();
-        return generateKeyProtection(alias, password, salt, iv);
+        return generateKeyProtection(password, salt, iv);
     }
     
-    public static KeyProtection generateKeyProtection(String alias, char[] password, byte[] salt, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException
+    public static KeyProtection generateKeyProtection(char[] password, byte[] salt, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException
     {
         SecretKey sk = CipheringTools.getAESSecretKey(password, salt);
-        return new KeyProtection(alias, iv, sk);
+        return new KeyProtection(iv, sk);
     }
     
     private SecretKey unlockCipheredKey(byte[] cipheredKey, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
@@ -110,10 +97,10 @@ public class KeyProtection
         if (privateKey == null)
         {
             LOG.debug("No private key, so key protection will be readable");
-            lkp = new LockedKeyProtection(getAlias(), getIV(), getKey().getEncoded());
+            lkp = new LockedKeyProtection(getIV(), getKey().getEncoded());
         }
         else
-            lkp = new LockedKeyProtection(getAlias(), getIV(), CipheringTools.cipherData(getKey().getEncoded(), privateKey));
+            lkp = new LockedKeyProtection(getIV(), CipheringTools.cipherData(getKey().getEncoded(), privateKey));
         
         return lkp;
     }
