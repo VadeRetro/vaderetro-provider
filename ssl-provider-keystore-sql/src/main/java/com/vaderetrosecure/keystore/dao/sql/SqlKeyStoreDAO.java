@@ -3,17 +3,11 @@
  */
 package com.vaderetrosecure.keystore.dao.sql;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,14 +16,11 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
-import com.vaderetrosecure.keystore.dao.CertificatesEntry;
 import com.vaderetrosecure.keystore.dao.IntegrityData;
-import com.vaderetrosecure.keystore.dao.KeyEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
-import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
 
 /**
  * @author ahonore
@@ -49,58 +40,94 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     @Override
     public void checkDAOStructure() throws KeyStoreDAOException
     {
-        // TODO Auto-generated method stub
+        StructureManager sm = new StructureManager(dataSource);
+        if (sm.versionsTableExists())
+            return;
         
+        sm.createVersionsTable();
+        sm.manageIntegrityTable();
+        sm.manageKeysTable();
+        sm.manageCertificateChainsTable();
+        sm.manageNamesTable();
     }
 
     @Override
     public int countEntries() throws KeyStoreDAOException
     {
-        int count = 0;
-        try (Connection conn = dataSource.getConnection())
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select count(alias_hash) from " + StructureManager.ENTRIES_TABLE); ResultSet rs = ps.executeQuery())
         {
-            try (PreparedStatement ps = conn.prepareStatement("select distinct count(alias_hash) from " + StructureManager.KEYS_TABLE); ResultSet rs = ps.executeQuery())
-            {
-                if (!rs.next())
-                    return 0;
-    
-                count += rs.getInt(1);
-            }
+            if (!rs.next())
+                return 0;
 
-            try (PreparedStatement ps = conn.prepareStatement("select distinct count(alias_hash) from " + StructureManager.CERTIFICATES_TABLE); ResultSet rs = ps.executeQuery())
-            {
-                if (!rs.next())
-                    return 0;
-    
-                count += rs.getInt(1);
-            }
+            return rs.getInt(1);
         }
         catch (SQLException e)
         {
-            LOG.debug(e, e);
             LOG.error(e);
+            LOG.debug(e, e);
             throw new KeyStoreDAOException(e);
         }
-        
-        return count;
     }
 
     @Override
     public List<String> getAliases() throws KeyStoreDAOException
     {
-        Set<String> aliases = new HashSet<>();
-        try (Connection conn = dataSource.getConnection())
+        List<String> aliases = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select distinct alias from " + StructureManager.ENTRIES_TABLE); ResultSet rs = ps.executeQuery())
         {
-            try (PreparedStatement ps = conn.prepareStatement("select distinct alias_hash, alias from " + StructureManager.KEYS_TABLE); ResultSet rs = ps.executeQuery())
+            while (rs.next())
+                aliases.add(rs.getString(1));
+
+            return aliases;
+        }
+        catch (SQLException e)
+        {
+            LOG.error(e);
+            LOG.debug(e, e);
+            throw new KeyStoreDAOException(e);
+        }
+    }
+
+    @Override
+    public List<String> getAliases(String algorithm) throws KeyStoreDAOException
+    {
+        List<String> aliases = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select distinct alias from " + StructureManager.ENTRIES_TABLE + " where algorithm=?"))
+        {
+            ps.setString(1, algorithm);
+            try (ResultSet rs = ps.executeQuery())
             {
                 while (rs.next())
-                    aliases.add(rs.getString("alias"));
+                    aliases.add(rs.getString(1));
             }
 
-            try (PreparedStatement ps = conn.prepareStatement("select distinct alias_hash, alias from " + StructureManager.CERTIFICATES_TABLE); ResultSet rs = ps.executeQuery())
+            return aliases;
+        }
+        catch (SQLException e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
+            throw new KeyStoreDAOException(e);
+        }
+    }
+
+    @Override
+    public IntegrityData getIntegrityData() throws KeyStoreDAOException
+    {
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.INTEGRITY_TABLE + " where id=?"); )
+        {
+            ps.setLong(1,  1L);
+            try (ResultSet rs = ps.executeQuery())
             {
-                while (rs.next())
-                    aliases.add(rs.getString("alias"));
+                if (rs.next())
+                {
+                    return new IntegrityData(
+                            EncodingTools.b64Decode(rs.getString("salt")),
+                            EncodingTools.b64Decode(rs.getString("iv")),
+                            EncodingTools.b64Decode(rs.getString("data")),
+                            EncodingTools.hexStringDecode(rs.getString("data_hash"))
+                            );
+                }
             }
         }
         catch (SQLException e)
@@ -110,78 +137,203 @@ class SqlKeyStoreDAO implements KeyStoreDAO
             throw new KeyStoreDAOException(e);
         }
 
-        return new ArrayList<>(aliases);
-    }
-
-    @Override
-    public List<String> getAuthenticationAliases(String keyType) throws KeyStoreDAOException
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public IntegrityData getIntegrityData() throws KeyStoreDAOException
-    {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public void setIntegrityData(IntegrityData integrityData) throws KeyStoreDAOException
     {
-        // TODO Auto-generated method stub
-        
+        try (Connection conn = dataSource.getConnection())
+        {
+            boolean autoCom = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement ps = conn.prepareStatement("delete from " + StructureManager.INTEGRITY_TABLE + " where id=?"))
+            {
+                ps.setLong(1, 1L);
+                ps.executeUpdate();
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement("insert into " + StructureManager.INTEGRITY_TABLE + " (id,salt,iv,data,data_hash) value(?,?,?,?,?)"))
+            {
+                ps.setLong(1, 1L);
+                ps.setString(2, EncodingTools.b64Encode(integrityData.getSalt()));
+                ps.setString(3, EncodingTools.b64Encode(integrityData.getIV()));
+                ps.setString(4, EncodingTools.b64Encode(integrityData.getCipheredData()));
+                ps.setString(5, EncodingTools.hexStringEncode(integrityData.getDataHash()));
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+            conn.setAutoCommit(autoCom);
+        }
+        catch (SQLException e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
+            throw new KeyStoreDAOException(e);
+        }
     }
 
     @Override
-    public KeyEntry getKeyEntry(String alias) throws KeyStoreDAOException
+    public KeyStoreEntry getEntry(String alias) throws KeyStoreDAOException
     {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public void setEntry(KeyEntry keyEntry) throws KeyStoreDAOException
-    {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void deleteKeyEntry(String alias) throws KeyStoreDAOException
-    {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public CertificatesEntry getCertificatesEntry(String alias) throws KeyStoreDAOException
+    public List<KeyStoreEntry> getEntries(String name) throws KeyStoreDAOException
     {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public List<CertificatesEntry> getCertificatesEntries(String name) throws KeyStoreDAOException
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setEntry(CertificatesEntry certificatesEntry) throws KeyStoreDAOException
+    public void setEntry(KeyStoreEntry entry) throws KeyStoreDAOException
     {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void deleteCertificatesEntry(String alias) throws KeyStoreDAOException
+    public void deleteEntry(KeyStoreEntry entry) throws KeyStoreDAOException
     {
         // TODO Auto-generated method stub
         
     }
+
+    
+    
+//    @Override
+//    public int countEntries() throws KeyStoreDAOException
+//    {
+//        int count = 0;
+//        try (Connection conn = dataSource.getConnection())
+//        {
+//            try (PreparedStatement ps = conn.prepareStatement("select distinct count(alias_hash) from " + StructureManager.KEYS_TABLE); ResultSet rs = ps.executeQuery())
+//            {
+//                if (!rs.next())
+//                    return 0;
+//    
+//                count += rs.getInt(1);
+//            }
+//
+//            try (PreparedStatement ps = conn.prepareStatement("select distinct count(alias_hash) from " + StructureManager.CERTIFICATES_TABLE); ResultSet rs = ps.executeQuery())
+//            {
+//                if (!rs.next())
+//                    return 0;
+//    
+//                count += rs.getInt(1);
+//            }
+//        }
+//        catch (SQLException e)
+//        {
+//            LOG.debug(e, e);
+//            LOG.error(e);
+//            throw new KeyStoreDAOException(e);
+//        }
+//        
+//        return count;
+//    }
+//
+//    @Override
+//    public List<String> getAliases() throws KeyStoreDAOException
+//    {
+//        Set<String> aliases = new HashSet<>();
+//        try (Connection conn = dataSource.getConnection())
+//        {
+//            try (PreparedStatement ps = conn.prepareStatement("select distinct alias_hash, alias from " + StructureManager.KEYS_TABLE); ResultSet rs = ps.executeQuery())
+//            {
+//                while (rs.next())
+//                    aliases.add(rs.getString("alias"));
+//            }
+//
+//            try (PreparedStatement ps = conn.prepareStatement("select distinct alias_hash, alias from " + StructureManager.CERTIFICATES_TABLE); ResultSet rs = ps.executeQuery())
+//            {
+//                while (rs.next())
+//                    aliases.add(rs.getString("alias"));
+//            }
+//        }
+//        catch (SQLException e)
+//        {
+//            LOG.debug(e, e);
+//            LOG.error(e);
+//            throw new KeyStoreDAOException(e);
+//        }
+//
+//        return new ArrayList<>(aliases);
+//    }
+//
+//    @Override
+//    public List<String> getAuthenticationAliases(String keyType) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public IntegrityData getIntegrityData() throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public void setIntegrityData(IntegrityData integrityData) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//
+//    @Override
+//    public KeyEntry getKeyEntry(String alias) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public void setEntry(KeyEntry keyEntry) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//
+//    @Override
+//    public void deleteKeyEntry(String alias) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//
+//    @Override
+//    public CertificatesEntry getCertificatesEntry(String alias) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public List<CertificatesEntry> getCertificatesEntries(String name) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public void setEntry(CertificatesEntry certificatesEntry) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//
+//    @Override
+//    public void deleteCertificatesEntry(String alias) throws KeyStoreDAOException
+//    {
+//        // TODO Auto-generated method stub
+//        
+//    }
 
 //    @Override
 //    public void createSchema() throws KeyStoreDAOException

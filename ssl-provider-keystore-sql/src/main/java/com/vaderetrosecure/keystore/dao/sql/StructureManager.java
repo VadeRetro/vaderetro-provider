@@ -24,11 +24,10 @@ class StructureManager
     private static final Logger LOG = Logger.getLogger(StructureManager.class);
 
     public static final String VERSIONS_TABLE = "versions";
-    public static final String KEYS_TABLE = "keys";
+    public static final String ENTRIES_TABLE = "entries";
     public static final String INTEGRITY_TABLE = "integrity";
     public static final String NAMES_TABLE = "names";
-    public static final String CERTIFICATES_TABLE = "certificates";
-    public static final String PROTECTIONS_TABLE = "protections";
+    public static final String CERTIFICATE_CHAINS_TABLE = "certificate_chains";
     
     private DataSource dataSource;
     
@@ -62,49 +61,17 @@ class StructureManager
     {
         StringBuilder sb = new StringBuilder();
         sb.append("create table if not exists ");
-        sb.append(KEYS_TABLE);
+        sb.append(ENTRIES_TABLE);
         sb.append(" (");
         sb.append("alias_hash varchar(64) not null");sb.append(",");
+        sb.append("entry_type int default 0");sb.append(",");
         sb.append("alias varchar(256) not null");sb.append(",");
         sb.append("creation_date bigint default 0");sb.append(",");
-        sb.append("key_entry_type int default 0");sb.append(",");
-        sb.append("algorithm varchar(64)");sb.append(",");
+        sb.append("algorithm varchar(32)");sb.append(",");
         sb.append("data text not null");sb.append(",");
-        sb.append("protection_iv varchar(128)");sb.append(",");
         sb.append("protection_key text");sb.append(",");
-        sb.append("primary key(alias_hash)");
-        sb.append(")");
-
-        try (Connection conn = dataSource.getConnection())
-        {
-            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-            {
-                ps.execute();
-            }
-            
-            insertVersion(conn, new Version(KEYS_TABLE, 1));
-        }
-        catch (SQLException e)
-        {
-            LOG.debug(e, e);
-            LOG.error(e);
-            throw new KeyStoreDAOException(e);
-        }
-    }
-    
-    public void manageCertificatesTable() throws KeyStoreDAOException
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.append("create table if not exists ");
-        sb.append(CERTIFICATES_TABLE);
-        sb.append(" (");
-        sb.append("alias_hash varchar(64) not null");sb.append(",");
-        sb.append("rank int default 0");sb.append(",");
-        sb.append("alias varchar(256) not null");sb.append(",");
-        sb.append("creation_date bigint default 0");sb.append(",");
-        sb.append("algorithm varchar(64)");sb.append(",");
-        sb.append("data text not null");sb.append(",");
-        sb.append("primary key(alias_hash, rank)");sb.append(",");
+        sb.append("protection_param varchar(128)");sb.append(",");
+        sb.append("primary key(alias_hash, entry_type)");sb.append(",");
         sb.append("key(algorithm)");
         sb.append(")");
 
@@ -115,7 +82,67 @@ class StructureManager
                 ps.execute();
             }
             
-            insertVersion(conn, new Version(CERTIFICATES_TABLE, 1));
+            insertVersion(conn, new Version(ENTRIES_TABLE, 1));
+        }
+        catch (SQLException e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
+            throw new KeyStoreDAOException(e);
+        }
+    }
+    
+    public void manageCertificateChainsTable() throws KeyStoreDAOException
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("create table if not exists ");
+        sb.append(CERTIFICATE_CHAINS_TABLE);
+        sb.append(" (");
+        sb.append("alias_hash varchar(64) not null");sb.append(",");
+        sb.append("entry_type int default 0");sb.append(",");
+        sb.append("rank int default 0");sb.append(",");
+        sb.append("data text not null");sb.append(",");
+        sb.append("primary key (alias_hash, entry_type, rank)");
+        sb.append(")");
+
+        try (Connection conn = dataSource.getConnection())
+        {
+            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+            {
+                ps.execute();
+            }
+            
+            insertVersion(conn, new Version(CERTIFICATE_CHAINS_TABLE, 1));
+        }
+        catch (SQLException e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
+            throw new KeyStoreDAOException(e);
+        }
+    }
+    
+    public void manageNamesTable() throws KeyStoreDAOException
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("create table if not exists ");
+        sb.append(NAMES_TABLE);
+        sb.append(" (");
+        sb.append("alias_hash varchar(64) not null");sb.append(",");
+        sb.append("name_hash varchar(64) not null");sb.append(",");
+        sb.append("name varchar(256) not null");sb.append(",");
+        sb.append("primary key(alias_hash, name_hash)");sb.append(",");
+        sb.append("key (name_hash)");
+        sb.append(")");
+
+        try (Connection conn = dataSource.getConnection())
+        {
+            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+            {
+                ps.execute();
+            }
+            
+            insertVersion(conn, new Version(NAMES_TABLE, 1));
         }
         catch (SQLException e)
         {
