@@ -10,7 +10,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -29,12 +28,11 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import org.apache.log4j.Logger;
 
 import com.vaderetrosecure.keystore.dao.CertificateData;
-import com.vaderetrosecure.keystore.dao.CertificatesEntry;
-import com.vaderetrosecure.keystore.dao.KeyEntry;
 import com.vaderetrosecure.keystore.dao.KeyProtection;
-import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
-import com.vaderetrosecure.keystore.dao.PrivateKeyEntry;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 
 /**
  * @author ahonore
@@ -45,13 +43,13 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     private final static Logger LOG = Logger.getLogger(SNIX509ExtendedKeyManager.class);
 
     private KeyStoreDAO keyStoreDAO;
-    private PublicKey publicKey;
+    private PrivateKey privateKey;
 
-    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, PublicKey publicKey)
+    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, PrivateKey privateKey)
     {
         super();
         this.keyStoreDAO = keyStoreDAO;
-        this.publicKey = publicKey;
+        this.privateKey = privateKey;
     }
 
     KeyStoreDAO getKeyStoreDAO()
@@ -96,20 +94,20 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     {
 		try
 		{
-			CertificatesEntry ce = keyStoreDAO.getCertificatesEntry(alias);
-	        if (ce != null)
+		    KeyStoreEntry kse = keyStoreDAO.getEntry(alias);
+	        if ((kse != null) && (kse.getEntryType() == KeyStoreEntryType.PRIVATE_KEY) && !kse.getCertificateChain().isEmpty())
 	        {
 	            List<X509Certificate> certs = new ArrayList<>();
-	            for (CertificateData cd : ce.getCertificates())
-	                certs.add((X509Certificate) cd.getCertificate());
+	            for (CertificateData ce : kse.getCertificateChain())
+	                certs.add((X509Certificate) ce.getCertificate());
 	            
 	            return certs.toArray(new X509Certificate[] {});
 	        }
 		}
 		catch (KeyStoreDAOException | CertificateException | IOException e)
 		{
-			LOG.debug(e, e);
-			LOG.error(e);
+            LOG.debug(e, e);
+            LOG.error(e);
 		}
         
         return null;
@@ -126,17 +124,17 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     {
 		try
 		{
-		    KeyEntry ke = keyStoreDAO.getKeyEntry(alias);
-		    if (PrivateKeyEntry.class.isInstance(ke))
+		    KeyStoreEntry kse = keyStoreDAO.getEntry(alias);
+		    if (kse.getEntryType() == KeyStoreEntryType.PRIVATE_KEY)
 		    {
-		        KeyProtection kp = new KeyProtection(ke.getLockedKeyProtection(), publicKey);
-		        return (PrivateKey) ke.getKey(kp);
+		        KeyProtection kp = new KeyProtection(kse.getLockedKeyProtection(), privateKey);
+		        return (PrivateKey) kse.getKey(kp);
 		    }
 		}
 		catch (KeyStoreDAOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException | InvalidAlgorithmParameterException e)
 		{
-			LOG.debug(e, e);
-			LOG.error(e);
+            LOG.debug(e, e);
+            LOG.error(e);
 		}
         
         return null;
@@ -147,7 +145,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     {
         try
         {
-            List<String> aliases = keyStoreDAO.getAuthenticationAliases(keyType);
+            List<String> aliases = keyStoreDAO.getAliases(keyType);
             if (aliases.isEmpty())
                 return null;
             
@@ -167,9 +165,12 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         for (SNIMatcher m : sniMatchers)
         {
             if (VRSNIMatcher.class.isInstance(m))
-                for (CertificatesEntry ce : ((VRSNIMatcher) m).getSelectedEntries())
-                    if (ce.getCertificates().get(0).getAlgorithm().equals(keyType))
-                        return ce.getAlias();
+                for (KeyStoreEntry kse : ((VRSNIMatcher) m).getSelectedEntries())
+                {
+                    String algo = kse.getAlgorithm();
+                    if ((algo != null) && algo.equalsIgnoreCase(keyType))
+                        return kse.getAlias();
+                }
         }
         
         return null;

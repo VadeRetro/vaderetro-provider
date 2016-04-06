@@ -13,10 +13,10 @@ import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -27,9 +27,9 @@ import org.apache.log4j.Logger;
 
 import com.vaderetrosecure.VadeRetroProvider;
 import com.vaderetrosecure.keystore.dao.IntegrityData;
-import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 
 /**
  * @author ahonore
@@ -39,15 +39,13 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 {
     private static final Logger LOG = Logger.getLogger(VRKeyManagerFactorySpi.class);
 
-    private final static String VR_KEYSTORE_PUBLIC_KEY_FILE = "com.vaderetrosecure.key.public";
+    private final static String VR_KEYSTORE_PRIVATE_KEY_FILE = "com.vaderetrosecure.key.private";
 
 	private KeyManager keyManagers[];
-//	private PublicKey publicKey;
 	
 	public VRKeyManagerFactorySpi()
 	{
 	    keyManagers = null;
-//	    publicKey = null;
 	}
 
     @Override
@@ -85,7 +83,7 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 			IntegrityData integrityData = ksdao.getIntegrityData();
 			if (password != null)
 			    integrityData.checkIntegrity(password);
-	    	keyManagers = new KeyManager[] { new SNIX509ExtendedKeyManager(ksdao, loadPublicKeyProtection()) };
+	    	keyManagers = new KeyManager[] { new SNIX509ExtendedKeyManager(ksdao, loadKeyProtectionPrivateKey()) };
 		}
 		catch (KeyStoreDAOException e)
 		{
@@ -107,10 +105,9 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 		}
     }
     
-    
-    private PublicKey loadPublicKeyProtection()
+    private PrivateKey loadKeyProtectionPrivateKey()
     {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(VR_KEYSTORE_PUBLIC_KEY_FILE);
+        URL url = Thread.currentThread().getContextClassLoader().getResource(VR_KEYSTORE_PRIVATE_KEY_FILE);
         if (url == null)
             return null;
 
@@ -118,17 +115,17 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
         {
             byte[] encKey = Files.readAllBytes(Paths.get(url.toURI()));
             KeyFactory kf = KeyFactory.getInstance("RSA");
-            return kf.generatePublic(new X509EncodedKeySpec(encKey));
+            return kf.generatePrivate(new PKCS8EncodedKeySpec(encKey));
         }
         catch (IOException | URISyntaxException e)
         {
             LOG.debug(e, e);
-            LOG.warn("public key not found: if a private key was used, unprotecting will throw errors", e);
+            LOG.warn("private key not found: if a public key was used, unprotecting will throw errors", e);
         }
         catch (NoSuchAlgorithmException | InvalidKeySpecException e)
         {
             LOG.debug(e, e);
-            LOG.warn("bad public key format: if a private key was used, unprotecting will throw errors", e);
+            LOG.warn("bad private key format: if a public key was used, unprotecting will throw errors", e);
         }
 
         return null;
