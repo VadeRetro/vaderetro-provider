@@ -30,7 +30,6 @@ public interface KeyStoreDAO
     
     /**
      * Return the list of all distinct aliases.
-     * This is a combination of aliases from key and certificate entries.
      * 
      * @return the list of aliases.
      * @throws KeyStoreDAOException
@@ -45,38 +44,24 @@ public interface KeyStoreDAO
      * @return
      * @throws KeyStoreDAOException
      */
-    List<String> getAuthenticationAliases(String keyType) throws KeyStoreDAOException;
+    List<String> getAliases(String algorithm) throws KeyStoreDAOException;
 
     IntegrityData getIntegrityData() throws KeyStoreDAOException;
     
     void setIntegrityData(IntegrityData integrityData) throws KeyStoreDAOException;
     
-    KeyEntry getKeyEntry(String alias) throws KeyStoreDAOException;
-
-    void setEntry(KeyEntry keyEntry) throws KeyStoreDAOException;
-
-    void deleteKeyEntry(String alias) throws KeyStoreDAOException;
-
-    CertificatesEntry getCertificatesEntry(String alias) throws KeyStoreDAOException;
-
-    List<CertificatesEntry> getCertificatesEntries(String name) throws KeyStoreDAOException;
+    KeyStoreEntry getEntry(String alias) throws KeyStoreDAOException;
     
-    void setEntry(CertificatesEntry certificatesEntry) throws KeyStoreDAOException;
-
-    void deleteCertificatesEntry(String alias) throws KeyStoreDAOException;
-
-//    /**
-//     * Return the certificate chain given by the name of the first certificate.
-//     * 
-//     * @param name the alias or one of the names of the certificate.
-//     * @return
-//     * @throws KeyStoreDAOException
-//     */
-//    List<CertificateEntry> getCertificateChain(String name) throws KeyStoreDAOException;
-//    
-//    void setEntry(KeyEntry keyEntry, List<CertificateEntry> certificateEntries) throws KeyStoreDAOException;
-//
-//    void setCertificateEntry(CertificateEntry certificateEntry) throws KeyStoreDAOException;
-//
-//    void deleteCertificateEntry(String alias) throws KeyStoreDAOException;
+    /**
+     * Return all entries that name from the list of names matches the associated entry.
+     * 
+     * @param name
+     * @return
+     * @throws KeyStoreDAOException
+     */
+    List<KeyStoreEntry> getEntries(String name) throws KeyStoreDAOException;
+    
+    void setEntry(KeyStoreEntry entry) throws KeyStoreDAOException;
+    
+    void deleteEntry(KeyStoreEntry entry) throws KeyStoreDAOException;
 }

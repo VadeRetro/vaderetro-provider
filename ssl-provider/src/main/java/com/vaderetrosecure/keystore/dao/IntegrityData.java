@@ -34,7 +34,7 @@ public class IntegrityData
     
     public IntegrityData()
     {
-        this(CipheringTools.generateRandomBytes(16), CipheringTools.generateIV(), new byte[]{}, new byte[]{});
+        this(CryptoTools.generateRandomBytes(16), CryptoTools.generateIV(), new byte[]{}, new byte[]{});
     }
 
     public IntegrityData(byte[] salt, byte[] iv, byte[] cipheredData, byte[] dataHash)
@@ -125,21 +125,21 @@ public class IntegrityData
     
     private void generateIntegrity(char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
-        setIV(CipheringTools.generateIV());
-        byte[] integrityData = CipheringTools.generateRandomBytes(64);
+        setIV(CryptoTools.generateIV());
+        byte[] integrityData = CryptoTools.generateRandomBytes(64);
         MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
         setDataHash(sha2.digest(integrityData));
-        SecretKey secret = CipheringTools.getAESSecretKey(password, getSalt());
-        setCipheredData(CipheringTools.cipherData(integrityData, secret, getIV()));
+        SecretKey secret = CryptoTools.getAESSecretKey(password, getSalt());
+        setCipheredData(CryptoTools.cipherData(integrityData, secret, getIV()));
     }
     
     public void checkIntegrity(char[] password) throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, InvalidKeySpecException
     {
         try
         {
-            SecretKey secret = CipheringTools.getAESSecretKey(password, getSalt());
+            SecretKey secret = CryptoTools.getAESSecretKey(password, getSalt());
             MessageDigest sha2 = MessageDigest.getInstance("SHA-256");
-            byte[] data = CipheringTools.decipherData(getCipheredData(), secret, getIV());
+            byte[] data = CryptoTools.decipherData(getCipheredData(), secret, getIV());
             if (!Arrays.equals(getDataHash(), sha2.digest(data)))
                 throw new UnrecoverableKeyException("integrity check failed");
         }

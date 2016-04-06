@@ -39,9 +39,9 @@ public class KeyProtection
         this.iv = iv;
     }
     
-    public KeyProtection(LockedKeyProtection lockedKeyProtection, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+    public KeyProtection(LockedKeyProtection lockedKeyProtection, PrivateKey privateKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
-        this.key = unlockCipheredKey(lockedKeyProtection.getCipheredKey(), publicKey);
+        this.key = unlockCipheredKey(lockedKeyProtection.getCipheredKey(), privateKey);
         this.iv = lockedKeyProtection.getIV();
     }
 
@@ -67,40 +67,40 @@ public class KeyProtection
     
     public static KeyProtection generateKeyProtection(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException
     {
-        byte[] iv = CipheringTools.generateIV();
+        byte[] iv = CryptoTools.generateIV();
         return generateKeyProtection(password, salt, iv);
     }
     
     public static KeyProtection generateKeyProtection(char[] password, byte[] salt, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException
     {
-        SecretKey sk = CipheringTools.getAESSecretKey(password, salt);
+        SecretKey sk = CryptoTools.getAESSecretKey(password, salt);
         return new KeyProtection(sk, iv);
     }
     
-    private SecretKey unlockCipheredKey(byte[] cipheredKey, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+    private SecretKey unlockCipheredKey(byte[] cipheredKey, PrivateKey privateKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
         SecretKey sk = null;
-        if (publicKey == null)
+        if (privateKey == null)
         {
             LOG.debug("No public key, now try to unlock a readable key protection");
             sk = new SecretKeySpec(cipheredKey, "AES");
         }
         else
-            sk = new SecretKeySpec(CipheringTools.decipherData(cipheredKey, publicKey), "AES");
+            sk = new SecretKeySpec(CryptoTools.decipherData(cipheredKey, privateKey), "AES");
         
         return sk;
     }
 
-    public LockedKeyProtection getLockedKeyProtection(PrivateKey privateKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+    public LockedKeyProtection getLockedKeyProtection(PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
         LockedKeyProtection lkp = null;
-        if (privateKey == null)
+        if (publicKey == null)
         {
             LOG.debug("No private key, so key protection will be readable");
             lkp = new LockedKeyProtection(getIV(), getKey().getEncoded());
         }
         else
-            lkp = new LockedKeyProtection(getIV(), CipheringTools.cipherData(getKey().getEncoded(), privateKey));
+            lkp = new LockedKeyProtection(getIV(), CryptoTools.cipherData(getKey().getEncoded(), publicKey));
         
         return lkp;
     }
