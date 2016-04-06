@@ -3,10 +3,8 @@
  */
 package com.vaderetrosecure.keystore;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,15 +50,13 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.vaderetrosecure.VadeRetroProvider;
-import com.vaderetrosecure.keystore.dao.CertificateData;
-import com.vaderetrosecure.keystore.dao.CertificatesEntry;
 import com.vaderetrosecure.keystore.dao.IntegrityData;
-import com.vaderetrosecure.keystore.dao.KeyEntry;
 import com.vaderetrosecure.keystore.dao.KeyProtection;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
-import com.vaderetrosecure.keystore.dao.PrivateKeyEntry;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 
 /**
  * @author ahonore
@@ -73,6 +69,7 @@ public class VRKeyStoreSpiTest
     private static final String MASTER_PASSWORD = "master-password";
     private static final String SECRET_KEY_ALIAS = "secret-alias";
     private static final String PRIVATE_KEY_AND_CERTIFICATE_ALIAS = "private-certificate-alias";
+    private static final String TRUSTED_CERTIFICATE_ALIAS = "trusted-certificate-alias";
 
     private static SecretKey secretKey;
     private static PrivateKey privKey;
@@ -141,12 +138,11 @@ public class VRKeyStoreSpiTest
     @Test
     public void testEngineSetKeyEntryWithSecretKey() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, KeyStoreDAOException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, InvalidAlgorithmParameterException
     {
-        ArgumentCaptor<KeyEntry> argument = ArgumentCaptor.forClass(KeyEntry.class);
+        ArgumentCaptor<KeyStoreEntry> argument = ArgumentCaptor.forClass(KeyStoreEntry.class);
         
         keystore.engineLoad(null, null);
         keystore.engineSetKeyEntry(SECRET_KEY_ALIAS, secretKey, null, null);
-        
-        verify(ksdao, never()).setEntry(any(CertificatesEntry.class));
+
         verify(ksdao).setEntry(argument.capture());
         Assert.assertEquals(SECRET_KEY_ALIAS, argument.getValue().getAlias());
         KeyProtection kp = new KeyProtection(argument.getValue().getLockedKeyProtection(), null);
@@ -156,34 +152,32 @@ public class VRKeyStoreSpiTest
     @Test
     public void testEngineSetEntryWithPrivateKeyAndCertificateChain() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, KeyStoreDAOException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, InvalidAlgorithmParameterException
     {
-        ArgumentCaptor<KeyEntry> argPKEntry = ArgumentCaptor.forClass(KeyEntry.class);
-        ArgumentCaptor<CertificatesEntry> argCertsEntry = ArgumentCaptor.forClass(CertificatesEntry.class);
+        ArgumentCaptor<KeyStoreEntry> argPKEntry = ArgumentCaptor.forClass(KeyStoreEntry.class);
         
         keystore.engineLoad(null, null);
         keystore.engineSetKeyEntry(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, privKey, null, new Certificate[]{ cert });
-        
-        verify(ksdao).setEntry(argPKEntry.capture());
-        verify(ksdao).setEntry(argCertsEntry.capture());
-        
-        Assert.assertEquals(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, argPKEntry.getValue().getAlias());
-        KeyProtection kp = new KeyProtection(argPKEntry.getValue().getLockedKeyProtection(), null);
-        Assert.assertArrayEquals(privKey.getEncoded(), argPKEntry.getValue().getKey(kp).getEncoded());
 
-        Assert.assertEquals(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, argCertsEntry.getValue().getAlias());
-        Assert.assertEquals(1, argCertsEntry.getValue().getCertificates().size());
-        Assert.assertArrayEquals(cert.getEncoded(), argCertsEntry.getValue().getCertificates().get(0).getCertificate().getEncoded());
+        verify(ksdao).setEntry(argPKEntry.capture());
+        KeyStoreEntry kse = argPKEntry.getValue();
+        Assert.assertNotNull(kse);
+        Assert.assertEquals(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, kse.getAlias());
+        Assert.assertEquals(KeyStoreEntryType.PRIVATE_KEY, kse.getEntryType());
+        KeyProtection kp = new KeyProtection(argPKEntry.getValue().getLockedKeyProtection(), null);
+        Assert.assertArrayEquals(privKey.getEncoded(), kse.getKey(kp).getEncoded());
+        Assert.assertEquals(1, kse.getCertificateChain().size());
+        Assert.assertArrayEquals(cert.getEncoded(), kse.getCertificateChain().get(0).getCertificate().getEncoded());
     }
 
     @Test(expected=UnrecoverableKeyException.class)
     public void testEngineGetKeyEntryWithPrivateKey() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, KeyStoreDAOException, CertificateException, IOException, UnrecoverableKeyException
     {
         KeyProtection kp = KeyProtection.generateKeyProtection("password".toCharArray(), ksdao.getIntegrityData().getSalt());
-        PrivateKeyEntry ske = new PrivateKeyEntry(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, Date.from(Instant.now()), privKey, kp);
-        when(ksdao.getKeyEntry(anyString())).thenReturn(ske);
+        KeyStoreEntry ksePK = new KeyStoreEntry(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, Date.from(Instant.now()), privKey, kp, Collections.emptyList(), Collections.emptyList());
+        when(ksdao.getEntry(anyString())).thenReturn(ksePK);
         
         keystore.engineLoad(null, null);
         Key k = keystore.engineGetKey(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, "password".toCharArray());
-        Assert.assertTrue(PrivateKeyEntry.class.isInstance(k));
+        Assert.assertTrue(PrivateKey.class.isInstance(k));
         Assert.assertArrayEquals(privKey.getEncoded(), k.getEncoded());
         
         keystore.engineGetKey(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, "wfgbkljnsmkgklmjb".toCharArray());
@@ -192,12 +186,11 @@ public class VRKeyStoreSpiTest
     @Test
     public void testEngineGetCertificateEntry() throws InvalidNameException, KeyStoreDAOException, NoSuchAlgorithmException, CertificateException, IOException
     {
-        CertificateData cd = new CertificateData(cert);
-        CertificatesEntry ce = new CertificatesEntry(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, Date.from(Instant.now()), Collections.singletonList(cd));
-        when(ksdao.getCertificatesEntry(anyString())).thenReturn(ce);
+        KeyStoreEntry kse = new KeyStoreEntry(TRUSTED_CERTIFICATE_ALIAS, Date.from(Instant.now()), cert);
+        when(ksdao.getEntry(anyString())).thenReturn(kse);
         
         keystore.engineLoad(null, null);
-        Certificate c = keystore.engineGetCertificate(PRIVATE_KEY_AND_CERTIFICATE_ALIAS);
+        Certificate c = keystore.engineGetCertificate(TRUSTED_CERTIFICATE_ALIAS);
 
         Assert.assertArrayEquals(cert.getEncoded(), c.getEncoded());
     }

@@ -48,7 +48,7 @@ public class IntegrityDataTest
     @Test(expected=UnrecoverableKeyException.class)
     public void testIntegrityBroken() throws UnrecoverableKeyException, NoSuchAlgorithmException, InvalidKeySpecException, IOException
     {
-        integrityData.setCipheredData(CipheringTools.generateRandomBytes(64));
+        integrityData.setCipheredData(CryptoTools.generateRandomBytes(64));
         integrityData.checkIntegrity(masterPassword.toCharArray());
     }
     

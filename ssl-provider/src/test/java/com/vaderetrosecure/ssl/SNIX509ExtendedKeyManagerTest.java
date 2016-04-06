@@ -31,11 +31,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.vaderetrosecure.keystore.dao.CertificateData;
-import com.vaderetrosecure.keystore.dao.CertificatesEntry;
 import com.vaderetrosecure.keystore.dao.IntegrityData;
 import com.vaderetrosecure.keystore.dao.KeyProtection;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
-import com.vaderetrosecure.keystore.dao.PrivateKeyEntry;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 
 /**
  * @author ahonore
@@ -50,12 +49,11 @@ public class SNIX509ExtendedKeyManagerTest
 
     private static final String PRIVATE_KEY_AND_CERTIFICATE_ALIAS = "private-certificate-alias";
     
-    private static PrivateKeyEntry privateKeyEntry;
+    private static KeyStoreEntry privateKeyEntry;
     private static PrivateKey privateKey;
-    private static CertificatesEntry certificatesEntry;
     private static Certificate certificate;
-    private static PublicKey keyManagerPublicKey;
-    private static PrivateKey vrKeyStorePrivateKey;
+    private static PrivateKey keyManagerPrivateKey;
+    private static PublicKey vrKeyStorePublicKey;
     private static IntegrityData integrityData;
     
     private KeyStoreDAO ksdao;
@@ -74,7 +72,7 @@ public class SNIX509ExtendedKeyManagerTest
         {
             URL url = Thread.currentThread().getContextClassLoader().getResource("public.key");
             byte[] encKey = Files.readAllBytes(Paths.get(url.toURI()));
-            keyManagerPublicKey = kf.generatePublic(new X509EncodedKeySpec(encKey));
+            vrKeyStorePublicKey = kf.generatePublic(new X509EncodedKeySpec(encKey));
         }
         catch (Exception e)
         {
@@ -86,7 +84,7 @@ public class SNIX509ExtendedKeyManagerTest
         {
             URL url = Thread.currentThread().getContextClassLoader().getResource("private.key");
             byte[] encKey = Files.readAllBytes(Paths.get(url.toURI()));
-            vrKeyStorePrivateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encKey));
+            keyManagerPrivateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encKey));
         }
         catch (Exception e)
         {
@@ -99,20 +97,21 @@ public class SNIX509ExtendedKeyManagerTest
             URL url = Thread.currentThread().getContextClassLoader().getResource("test.com.key");
             byte[] encData = Files.readAllBytes(Paths.get(url.toURI()));
             privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encData));
-            privateKeyEntry = new PrivateKeyEntry(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, creationDate, privateKey, kp);
-            privateKeyEntry.setLockedKeyProtection(kp.getLockedKeyProtection(vrKeyStorePrivateKey));
+
+            try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("test.com.crt"))
+            {
+                CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                certificate = cf.generateCertificate(is);
+            }
+
+            privateKeyEntry = new KeyStoreEntry(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, creationDate, privateKey, kp, Collections.singletonList(new CertificateData(certificate)), Collections.singletonList("test.com"));
+            privateKeyEntry.setLockedKeyProtection(kp.getLockedKeyProtection(vrKeyStorePublicKey));
+//            privateKeyEntry.setLockedKeyProtection(kp.getLockedKeyProtection(null));
         }
         catch (Exception e)
         {
             LOG.fatal(e, e);
             throw e;
-        }
-        
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("test.com.crt"))
-        {
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            certificate = cf.generateCertificate(is);
-            certificatesEntry = new CertificatesEntry(PRIVATE_KEY_AND_CERTIFICATE_ALIAS, creationDate, Collections.singletonList(new CertificateData(certificate)));
         }
     }
 
@@ -121,12 +120,11 @@ public class SNIX509ExtendedKeyManagerTest
     {
         ksdao = mock(KeyStoreDAO.class);
         when(ksdao.getIntegrityData()).thenReturn(integrityData);
-        when(ksdao.getKeyEntry(eq(PRIVATE_KEY_AND_CERTIFICATE_ALIAS))).thenReturn(privateKeyEntry);
-        when(ksdao.getCertificatesEntry(eq(PRIVATE_KEY_AND_CERTIFICATE_ALIAS))).thenReturn(certificatesEntry);
-        when(ksdao.getCertificatesEntries(eq("test.com"))).thenReturn(Collections.singletonList(certificatesEntry));
-        when(ksdao.getAuthenticationAliases(eq("RSA"))).thenReturn(Collections.singletonList(PRIVATE_KEY_AND_CERTIFICATE_ALIAS));
+        when(ksdao.getEntry(eq(PRIVATE_KEY_AND_CERTIFICATE_ALIAS))).thenReturn(privateKeyEntry);
+        when(ksdao.getAliases(eq("RSA"))).thenReturn(Collections.singletonList(PRIVATE_KEY_AND_CERTIFICATE_ALIAS));
         
-        keyManager = new SNIX509ExtendedKeyManager(ksdao, keyManagerPublicKey);
+        keyManager = new SNIX509ExtendedKeyManager(ksdao, keyManagerPrivateKey);
+//        keyManager = new SNIX509ExtendedKeyManager(ksdao, null);
     }
 
     @Test(expected=UnsupportedOperationException.class)
