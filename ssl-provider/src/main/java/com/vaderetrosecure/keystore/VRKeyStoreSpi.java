@@ -49,9 +49,9 @@ import org.apache.log4j.Logger;
 import com.vaderetrosecure.keystore.dao.CertificateData;
 import com.vaderetrosecure.keystore.dao.IntegrityData;
 import com.vaderetrosecure.keystore.dao.KeyProtection;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
-import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
@@ -59,6 +59,7 @@ import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
 /**
  * @author ahonore
  *
+ * private/public key pair size for key protection must be at least 2048.
  */
 public class VRKeyStoreSpi extends KeyStoreSpi
 {
@@ -77,7 +78,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         try
         {
             KeyStoreDAOFactory ksFactory = KeyStoreDAOFactory.getInstance();
-//            keystoreDAO = ksFactory.getKeyStoreDAO();
+            keystoreDAO = ksFactory.getKeyStoreDAO();
         }
         catch (KeyStoreDAOException e)
         {
