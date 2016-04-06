@@ -97,10 +97,10 @@ public class KeyProtection
         if (publicKey == null)
         {
             LOG.debug("No private key, so key protection will be readable");
-            lkp = new LockedKeyProtection(getIV(), getKey().getEncoded());
+            lkp = new LockedKeyProtection(getKey().getEncoded(), getIV());
         }
         else
-            lkp = new LockedKeyProtection(getIV(), CryptoTools.cipherData(getKey().getEncoded(), publicKey));
+            lkp = new LockedKeyProtection(CryptoTools.cipherData(getKey().getEncoded(), publicKey), getIV());
         
         return lkp;
     }
