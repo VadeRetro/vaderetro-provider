@@ -25,34 +25,24 @@ public class KeyProtection
 {
     private final static Logger LOG = Logger.getLogger(KeyProtection.class);
 
-    private byte[] iv;
     private SecretKey key;
+    private byte[] iv;
     
     public KeyProtection()
     {
-        this(new byte[]{}, null);
+        this(null, new byte[]{});
     }
     
-    public KeyProtection(byte[] iv, SecretKey key)
+    public KeyProtection(SecretKey key, byte[] iv)
     {
-        this.iv = iv;
         this.key = key;
+        this.iv = iv;
     }
     
     public KeyProtection(LockedKeyProtection lockedKeyProtection, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
     {
-        this.iv = lockedKeyProtection.getIV();
         this.key = unlockCipheredKey(lockedKeyProtection.getCipheredKey(), publicKey);
-    }
-
-    public byte[] getIV()
-    {
-        return iv;
-    }
-
-    public void setIV(byte[] iv)
-    {
-        this.iv = iv;
+        this.iv = lockedKeyProtection.getIV();
     }
 
     public SecretKey getKey()
@@ -64,6 +54,16 @@ public class KeyProtection
     {
         this.key = key;
     }
+
+    public byte[] getIV()
+    {
+        return iv;
+    }
+
+    public void setIV(byte[] iv)
+    {
+        this.iv = iv;
+    }
     
     public static KeyProtection generateKeyProtection(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException
     {
@@ -74,7 +74,7 @@ public class KeyProtection
     public static KeyProtection generateKeyProtection(char[] password, byte[] salt, byte[] iv) throws NoSuchAlgorithmException, InvalidKeySpecException
     {
         SecretKey sk = CipheringTools.getAESSecretKey(password, salt);
-        return new KeyProtection(iv, sk);
+        return new KeyProtection(sk, iv);
     }
     
     private SecretKey unlockCipheredKey(byte[] cipheredKey, PublicKey publicKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException

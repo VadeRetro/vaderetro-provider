@@ -33,15 +33,28 @@ create table integrity
 	primary key(id)
 );
 
-create table keys
+create table entries
 (
 	alias_hash varchar(64) not null,
+	entry_type int default 0,
+	rank int default 0,
 	alias varchar(256) not null,
 	creation_date bigint default 0,
-	key_entry_type int default 0,
 	algorithm varchar(256),
 	data text not null,
-	protection_iv varchar(256),
-	protection_key text,
-	primary key(alias_hash)
+	protection_iv varchar(256) default null,
+	protection_key text default null,
+	primary key(alias_hash, entry_type, rank),
+	key (algorithm)
 );
+
+create table names
+(
+	alias_hash varchar(64) not null,
+	rank int default 0,
+	name_hash varchar(64) not null,
+	name varchar(256) not null,
+	primary key(alias_hash, rank),
+	key (name_hash)
+);
+

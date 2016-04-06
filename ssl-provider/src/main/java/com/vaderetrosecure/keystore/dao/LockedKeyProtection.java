@@ -9,27 +9,17 @@ package com.vaderetrosecure.keystore.dao;
  */
 public class LockedKeyProtection
 {
-    private byte[] iv;
     private byte[] cipheredKey;
+    private byte[] iv;
     
     public LockedKeyProtection()
     {
         this(new byte[]{}, new byte[]{});
     }
     
-    public LockedKeyProtection(byte[] iv, byte[] cipheredKey)
+    public LockedKeyProtection(byte[] cipheredKey, byte[] iv)
     {
-        this.iv = iv;
         this.cipheredKey = cipheredKey;
-    }
-
-    public byte[] getIV()
-    {
-        return iv;
-    }
-
-    public void setIV(byte[] iv)
-    {
         this.iv = iv;
     }
 
@@ -41,5 +31,15 @@ public class LockedKeyProtection
     public void setCipheredKey(byte[] cipheredKey)
     {
         this.cipheredKey = cipheredKey;
+    }
+
+    public byte[] getIV()
+    {
+        return iv;
+    }
+
+    public void setIV(byte[] iv)
+    {
+        this.iv = iv;
     }
 }

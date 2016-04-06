@@ -7,8 +7,10 @@ package com.vaderetrosecure.keystore.dao.sql;
  * @author ahonore
  *
  */
-enum KeyEntryType
+enum EntryType
 {
+    KEY,
+    SECRET_KEY,
     PRIVATE_KEY,
-    SECRET_KEY
+    CERTIFICATE
 }
