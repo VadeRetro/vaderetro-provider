@@ -4,18 +4,19 @@
 package com.vaderetrosecure.keystore.dao.sql;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
+import com.vaderetrosecure.keystore.dao.CertificateData;
 import com.vaderetrosecure.keystore.dao.IntegrityData;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
@@ -178,8 +179,40 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     @Override
     public KeyStoreEntry getEntry(String alias) throws KeyStoreDAOException
     {
-        // TODO Auto-generated method stub
-        return null;
+        try (Connection conn = dataSource.getConnection())
+        {
+            String aliasHash = EncodingTools.toSHA2(alias);
+            KeyStoreEntry kse = getKeyStoreEntryObject(conn, aliasHash);
+            if (kse != null)
+            {
+                kse.setCertificateChain(getCertificateChainObjectList(conn, aliasHash));
+                kse.setNames(getNameObjectList(conn, aliasHash));
+            }
+            
+            return kse;
+            
+            try (PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.ENTRIES_TABLE + " where alias_hash=?"))
+            {
+                ps.setString(1, 1L);
+                ps.executeUpdate();
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement("insert into " + StructureManager.INTEGRITY_TABLE + " (id,salt,iv,data,data_hash) value(?,?,?,?,?)"))
+            {
+                ps.setLong(1, 1L);
+                ps.setString(2, EncodingTools.b64Encode(integrityData.getSalt()));
+                ps.setString(3, EncodingTools.b64Encode(integrityData.getIV()));
+                ps.setString(4, EncodingTools.b64Encode(integrityData.getCipheredData()));
+                ps.setString(5, EncodingTools.hexStringEncode(integrityData.getDataHash()));
+                ps.executeUpdate();
+            }
+        }
+        catch (SQLException e)
+        {
+            LOG.debug(e, e);
+            LOG.error(e);
+            throw new KeyStoreDAOException(e);
+        }
     }
 
     @Override
@@ -203,7 +236,38 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         
     }
 
-    
+    private KeyStoreEntry getKeyStoreEntryObject(Connection conn, String aliasHash) throws SQLException
+    {
+        KeyStoreEntry kse = null;
+        try (PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.ENTRIES_TABLE + " where alias_hash=?"))
+        {
+            ps.setString(1, aliasHash);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                if (rs.next())
+                {
+                    kse = new KeyStoreEntry(
+                            rs.getString("alias"), 
+                            Date.from(Instant.ofEpochMilli(rs.getLong("creation_date"))), 
+                            KeyStoreEntryType.values()[rs.getInt("entry_type")],
+                            rs.getString("algorithm"),
+                                );
+                }
+            }
+        }
+        
+        return kse;
+    }
+
+    private List<CertificateData> getCertificateChainObjectList(Connection conn, String aliasHash)
+    {
+        return new ArrayList<>();
+    }
+
+    private List<String> getNameObjectList(Connection conn, String aliasHash)
+    {
+        return new ArrayList<>();
+    }
     
 //    @Override
 //    public int countEntries() throws KeyStoreDAOException
