@@ -202,6 +202,7 @@ class StructureManager
         {
             ps.setString(1, version.getTableName());
             ps.setInt(2, version.getTableVersion());
+            ps.setInt(3, version.getTableVersion());
             ps.executeUpdate();
         }
     }
