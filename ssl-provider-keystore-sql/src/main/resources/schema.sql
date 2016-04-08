@@ -43,17 +43,16 @@ create table entries
 	data text not null,
 	protection_key text default null,
 	protection_param varchar(128) default null,
-	primary key(alias_hash, entry_type),
+	primary key(alias_hash),
 	key (algorithm)
 );
 
 create table certificate_chains
 (
 	alias_hash varchar(64) not null,
-	entry_type int default 0,
 	rank int default 0, 
 	data text not null, 
-	primary key (alias_hash, entry_type, rank)
+	primary key (alias_hash, rank)
 );
 
 create table names

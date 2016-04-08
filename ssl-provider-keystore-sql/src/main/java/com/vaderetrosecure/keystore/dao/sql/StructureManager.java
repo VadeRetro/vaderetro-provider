@@ -71,7 +71,7 @@ class StructureManager
         sb.append("data text not null");sb.append(",");
         sb.append("protection_key text");sb.append(",");
         sb.append("protection_param varchar(128)");sb.append(",");
-        sb.append("primary key(alias_hash, entry_type)");sb.append(",");
+        sb.append("primary key(alias_hash)");sb.append(",");
         sb.append("key(algorithm)");
         sb.append(")");
 
@@ -99,10 +99,9 @@ class StructureManager
         sb.append(CERTIFICATE_CHAINS_TABLE);
         sb.append(" (");
         sb.append("alias_hash varchar(64) not null");sb.append(",");
-        sb.append("entry_type int default 0");sb.append(",");
         sb.append("rank int default 0");sb.append(",");
         sb.append("data text not null");sb.append(",");
-        sb.append("primary key (alias_hash, entry_type, rank)");
+        sb.append("primary key (alias_hash, rank)");
         sb.append(")");
 
         try (Connection conn = dataSource.getConnection())

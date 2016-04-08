@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -22,6 +23,7 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
+import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
 
 /**
  * @author ahonore
@@ -190,23 +192,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
             }
             
             return kse;
-            
-            try (PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.ENTRIES_TABLE + " where alias_hash=?"))
-            {
-                ps.setString(1, 1L);
-                ps.executeUpdate();
-            }
-            
-            try (PreparedStatement ps = conn.prepareStatement("insert into " + StructureManager.INTEGRITY_TABLE + " (id,salt,iv,data,data_hash) value(?,?,?,?,?)"))
-            {
-                ps.setLong(1, 1L);
-                ps.setString(2, EncodingTools.b64Encode(integrityData.getSalt()));
-                ps.setString(3, EncodingTools.b64Encode(integrityData.getIV()));
-                ps.setString(4, EncodingTools.b64Encode(integrityData.getCipheredData()));
-                ps.setString(5, EncodingTools.hexStringEncode(integrityData.getDataHash()));
-                ps.executeUpdate();
-            }
-        }
+         }
         catch (SQLException e)
         {
             LOG.debug(e, e);
@@ -246,12 +232,21 @@ class SqlKeyStoreDAO implements KeyStoreDAO
             {
                 if (rs.next())
                 {
+                    LockedKeyProtection lkp = null;
+                    String protectKey = rs.getString("protection_key");
+                    String protectParam = rs.getString("protection_param");
+                    if ((protectKey != null) && (protectParam != null))
+                        lkp = new LockedKeyProtection(EncodingTools.b64Decode(protectKey), EncodingTools.b64Decode(protectParam));
                     kse = new KeyStoreEntry(
                             rs.getString("alias"), 
                             Date.from(Instant.ofEpochMilli(rs.getLong("creation_date"))), 
                             KeyStoreEntryType.values()[rs.getInt("entry_type")],
                             rs.getString("algorithm"),
-                                );
+                            EncodingTools.b64Decode(rs.getString("data")),
+                            lkp,
+                            Collections.emptyList(),
+                            Collections.emptyList()
+                            );
                 }
             }
         }
@@ -259,9 +254,22 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         return kse;
     }
 
-    private List<CertificateData> getCertificateChainObjectList(Connection conn, String aliasHash)
+    private List<CertificateData> getCertificateChainObjectList(Connection conn, String aliasHash) throws SQLException
     {
-        return new ArrayList<>();
+        List<CertificateData> certChain = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.CERTIFICATE_CHAINS_TABLE + " where alias_hash=? order by rank"))
+        {
+            ps.setString(1, aliasHash);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                while (rs.next())
+                {
+                    certChain.add(new CertificateData(EncodingTools.b64Decode(rs.getString("data"))));
+                }
+            }
+        }
+        
+        return certChain;
     }
 
     private List<String> getNameObjectList(Connection conn, String aliasHash)
