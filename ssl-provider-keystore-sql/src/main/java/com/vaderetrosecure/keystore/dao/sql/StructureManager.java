@@ -200,6 +200,8 @@ class StructureManager
     {
         try (PreparedStatement ps = conn.prepareStatement("insert into " + VERSIONS_TABLE + " (table_name, version) value(?,?) on duplicate key update version=?"))
         {
+            ps.setString(1, version.getTableName());
+            ps.setInt(2, version.getTableVersion());
             ps.executeUpdate();
         }
     }
