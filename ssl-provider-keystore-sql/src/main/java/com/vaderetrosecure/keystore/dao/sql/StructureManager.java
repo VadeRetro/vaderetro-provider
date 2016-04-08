@@ -29,6 +29,11 @@ class StructureManager
     public static final String NAMES_TABLE = "names";
     public static final String CERTIFICATE_CHAINS_TABLE = "certificate_chains";
     
+    public static final int ENTRIES_VERSION = 1;
+    public static final int INTEGRITY_VERSION = 1;
+    public static final int NAMES_VERSION = 1;
+    public static final int CERTIFICATE_CHAINS_VERSION = 1;
+    
     private DataSource dataSource;
     
     public StructureManager(DataSource dataSource)
@@ -77,12 +82,15 @@ class StructureManager
 
         try (Connection conn = dataSource.getConnection())
         {
-            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-            {
-                ps.execute();
-            }
-            
-            insertVersion(conn, new Version(ENTRIES_TABLE, 1));
+        	if (getVersion(conn, ENTRIES_TABLE) != ENTRIES_VERSION)
+        	{
+	            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+	            {
+	                ps.execute();
+	            }
+	            
+	            insertVersion(conn, new Version(ENTRIES_TABLE, ENTRIES_VERSION));
+        	}
         }
         catch (SQLException e)
         {
@@ -106,12 +114,15 @@ class StructureManager
 
         try (Connection conn = dataSource.getConnection())
         {
-            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-            {
-                ps.execute();
-            }
-            
-            insertVersion(conn, new Version(CERTIFICATE_CHAINS_TABLE, 1));
+        	if (getVersion(conn, CERTIFICATE_CHAINS_TABLE) != CERTIFICATE_CHAINS_VERSION)
+        	{
+	            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+	            {
+	                ps.execute();
+	            }
+	            
+	            insertVersion(conn, new Version(CERTIFICATE_CHAINS_TABLE, CERTIFICATE_CHAINS_VERSION));
+        	}
         }
         catch (SQLException e)
         {
@@ -136,12 +147,15 @@ class StructureManager
 
         try (Connection conn = dataSource.getConnection())
         {
-            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-            {
-                ps.execute();
-            }
-            
-            insertVersion(conn, new Version(NAMES_TABLE, 1));
+        	if (getVersion(conn, NAMES_TABLE) != NAMES_VERSION)
+        	{
+	            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+	            {
+	                ps.execute();
+	            }
+	            
+	            insertVersion(conn, new Version(NAMES_TABLE, NAMES_VERSION));
+        	}
         }
         catch (SQLException e)
         {
@@ -167,12 +181,15 @@ class StructureManager
 
         try (Connection conn = dataSource.getConnection())
         {
-            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-            {
-                ps.execute();
-            }
-            
-            insertVersion(conn, new Version(INTEGRITY_TABLE, 1));
+        	if (getVersion(conn, INTEGRITY_TABLE) != INTEGRITY_VERSION)
+        	{
+	            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+	            {
+	                ps.execute();
+	            }
+	            
+	            insertVersion(conn, new Version(INTEGRITY_TABLE, INTEGRITY_VERSION));
+        	}
         }
         catch (SQLException e)
         {
@@ -194,6 +211,22 @@ class StructureManager
             LOG.error(e);
             throw new KeyStoreDAOException(e);
         }
+    }
+    
+    private int getVersion(Connection conn, String tableName) throws SQLException
+    {
+    	int version = 0;
+    	try (PreparedStatement ps = conn.prepareStatement("select * from " + VERSIONS_TABLE + " where table_name=?"))
+    	{
+    		ps.setString(1, tableName);
+    		try (ResultSet rs = ps.executeQuery())
+    		{
+    			if (rs.next())
+    				version = rs.getInt("version");
+    		}
+    	}
+    	
+    	return version;
     }
     
     private void insertVersion(Connection conn, Version version) throws SQLException

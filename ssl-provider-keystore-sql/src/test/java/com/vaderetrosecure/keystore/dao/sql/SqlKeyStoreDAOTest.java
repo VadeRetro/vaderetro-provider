@@ -9,6 +9,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.UnrecoverableKeyException;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -16,9 +21,11 @@ import java.util.Properties;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.sql.DataSource;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.vaderetrosecure.keystore.dao.IntegrityData;
@@ -36,23 +43,51 @@ public class SqlKeyStoreDAOTest
 {
     private static final String MASTER_PASSWORD = "master-password";
 
+    private static SqlKeyStoreDAOFactory daoFactory;
+    private static SecretKey secretKey;
     private KeyStoreDAO sqldao;
-    private SecretKey secretKey;
 
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception
+    {
+        secretKey = new SecretKeySpec("secret key".getBytes(StandardCharsets.US_ASCII), "AES");
+        daoFactory = new SqlKeyStoreDAOFactory();
+        Properties p = new Properties();
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("com.vaderetrosecure.keystore.dao.properties"))
+        {
+            p.load(is);
+        } 
+        daoFactory.init(p);
+    }
+    
     @Before
     public void setUp() throws Exception
     {
-        secretKey = new SecretKeySpec("secret key".getBytes(StandardCharsets.US_ASCII), "AES");
-        SqlKeyStoreDAOFactory daoFactory = new SqlKeyStoreDAOFactory();
-        Properties p = new Properties();
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("com.vaderetrosecure.keystore.dao.properties"))
-        {
-            p.load(is);
-        }
-        daoFactory.init(p);
         sqldao = daoFactory.getKeyStoreDAO();
+        dropTables(((SqlKeyStoreDAO) sqldao).getDataSource());
     }
 
+    private void dropTables(DataSource dataSource)
+    {
+        try (Connection conn = dataSource.getConnection())
+        {
+            DatabaseMetaData meta = conn.getMetaData();
+            try (ResultSet rs = meta.getTables(null, null, null, new String[] {"TABLE"}))
+            {
+                while (rs.next())
+                {
+                	try (PreparedStatement ps = conn.prepareStatement("drop table " + rs.getString(3)))
+                	{
+                		ps.executeUpdate();
+                	}
+                }
+            }
+        }
+        catch (SQLException e)
+        {
+        }
+    }
+    
     @Test
     public void testCreateSchema() throws KeyStoreDAOException
     {

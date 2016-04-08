@@ -42,6 +42,11 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         this.dataSource = dataSource;
     }
 
+    DataSource getDataSource()
+    {
+    	return dataSource;
+    }
+    
     @Override
     public void checkDAOStructure() throws KeyStoreDAOException
     {
