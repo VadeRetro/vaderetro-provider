@@ -3,29 +3,36 @@
  */
 package com.vaderetrosecure.ssl;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SNIMatcher;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
 
 import org.apache.log4j.Logger;
 
-import com.vaderetrosecure.keystore.dao.DAOHelper;
-import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.CertificateData;
+import com.vaderetrosecure.keystore.dao.KeyProtection;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
-import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 
 /**
  * @author ahonore
@@ -36,13 +43,13 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     private final static Logger LOG = Logger.getLogger(SNIX509ExtendedKeyManager.class);
 
     private KeyStoreDAO keyStoreDAO;
-    private KeyStoreMetaData keyStoreMetaData;
+    private PrivateKey privateKey;
 
-    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, KeyStoreMetaData keyStoreMetaData)
+    SNIX509ExtendedKeyManager(KeyStoreDAO keyStoreDAO, PrivateKey privateKey)
     {
         super();
         this.keyStoreDAO = keyStoreDAO;
-        this.keyStoreMetaData = keyStoreMetaData;
+        this.privateKey = privateKey;
     }
 
     KeyStoreDAO getKeyStoreDAO()
@@ -87,16 +94,20 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     {
 		try
 		{
-			List<Certificate> entries = DAOHelper.getListOfCertificates(keyStoreDAO, alias);
-	        if (entries.isEmpty())
-	            return null;
-	        
-	        return entries.toArray(new X509Certificate[] {});
+		    KeyStoreEntry kse = keyStoreDAO.getEntry(alias);
+	        if ((kse != null) && (kse.getEntryType() == KeyStoreEntryType.PRIVATE_KEY) && !kse.getCertificateChain().isEmpty())
+	        {
+	            List<X509Certificate> certs = new ArrayList<>();
+	            for (CertificateData ce : kse.getCertificateChain())
+	                certs.add((X509Certificate) ce.getCertificate());
+	            
+	            return certs.toArray(new X509Certificate[] {});
+	        }
 		}
-		catch (KeyStoreDAOException | CertificateException e)
+		catch (KeyStoreDAOException | CertificateException | IOException e)
 		{
-			LOG.debug(e, e);
-			LOG.error(e);
+            LOG.debug(e, e);
+            LOG.error(e);
 		}
         
         return null;
@@ -113,12 +124,17 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     {
 		try
 		{
-			return DAOHelper.getPrivateKey(keyStoreDAO, keyStoreMetaData, alias);
+		    KeyStoreEntry kse = keyStoreDAO.getEntry(alias);
+		    if (kse.getEntryType() == KeyStoreEntryType.PRIVATE_KEY)
+		    {
+		        KeyProtection kp = new KeyProtection(kse.getLockedKeyProtection(), privateKey);
+		        return (PrivateKey) kse.getKey(kp);
+		    }
 		}
-		catch (KeyStoreDAOException | NoSuchAlgorithmException e)
+		catch (KeyStoreDAOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException | InvalidAlgorithmParameterException e)
 		{
-			LOG.debug(e, e);
-			LOG.error(e);
+            LOG.debug(e, e);
+            LOG.error(e);
 		}
         
         return null;
@@ -129,7 +145,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     {
         try
         {
-            List<String> aliases = keyStoreDAO.getAuthenticationAliases(keyType);
+            List<String> aliases = keyStoreDAO.getAliases(keyType);
             if (aliases.isEmpty())
                 return null;
             
@@ -150,8 +166,11 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         {
             if (VRSNIMatcher.class.isInstance(m))
                 for (KeyStoreEntry kse : ((VRSNIMatcher) m).getSelectedEntries())
-                    if (kse.getAlgorithm().equals(keyType))
+                {
+                    String algo = kse.getAlgorithm();
+                    if ((algo != null) && algo.equalsIgnoreCase(keyType))
                         return kse.getAlias();
+                }
         }
         
         return null;

@@ -9,8 +9,7 @@ package com.vaderetrosecure.keystore.dao;
  */
 public enum KeyStoreEntryType
 {
-    KEY,
     SECRET_KEY,
     PRIVATE_KEY,
-    CERTIFICATE
+    TRUSTED_CERTIFICATE
 }

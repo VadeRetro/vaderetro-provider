@@ -16,8 +16,8 @@ import javax.net.ssl.StandardConstants;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 
 /**
@@ -51,7 +51,7 @@ class VRSNIMatcher extends SNIMatcher
         
         try
         {
-            selectedEntries = keyStoreDAO.getKeyStoreEntriesByName(name);
+            selectedEntries = keyStoreDAO.getEntries(name);
             if (LOG.getEffectiveLevel() == Level.DEBUG)
             {
                 if (selectedEntries.isEmpty())

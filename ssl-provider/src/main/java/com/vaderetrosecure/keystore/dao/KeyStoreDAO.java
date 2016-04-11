@@ -3,8 +3,6 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,47 +12,56 @@ import java.util.List;
 public interface KeyStoreDAO
 {
     /**
-     * Create tables of the databases.
-     * Be aware that this method first try to delete all tables if exist and create the database from scratch.
+     * Check the DAO structure.
+     * Update the underlying data store if needed.
      * 
      * @throws KeyStoreDAOException
      */
-    void createSchema() throws KeyStoreDAOException;
+    void checkDAOStructure() throws KeyStoreDAOException;
     
-    KeyStoreMetaData getMetaData() throws KeyStoreDAOException;
-    
+    /**
+     * Return the number of stored entries.
+     * This is the sum of all key and certificate entries.
+     * 
+     * @return an integer representing the number of entries.
+     * @throws KeyStoreDAOException
+     */
     int countEntries() throws KeyStoreDAOException;
     
+    /**
+     * Return the list of all distinct aliases.
+     * 
+     * @return the list of aliases.
+     * @throws KeyStoreDAOException
+     */
     List<String> getAliases() throws KeyStoreDAOException;
     
     /**
      * Get aliases that refer to private key/certificate pairs.
      * It is useful for server authentication.
      * 
-     * @param keyType
+     * @param keyType the algorithm name used to create the key and certificate pair (i.e.: EC_EC, RSA, DSA...).
      * @return
      * @throws KeyStoreDAOException
      */
-    List<String> getAuthenticationAliases(String keyType) throws KeyStoreDAOException;
+    List<String> getAliases(String algorithm) throws KeyStoreDAOException;
+
+    IntegrityData getIntegrityData() throws KeyStoreDAOException;
     
-    List<KeyStoreEntry> getKeyStoreEntry(String alias, KeyStoreEntryType keyStoreEntryType) throws KeyStoreDAOException;
+    void setIntegrityData(IntegrityData integrityData) throws KeyStoreDAOException;
     
-    List<KeyStoreEntry> getKeyStoreEntry(String alias) throws KeyStoreDAOException;
-    
-    List<KeyStoreEntry> getKeyStoreEntriesByName(String name) throws KeyStoreDAOException;
+    KeyStoreEntry getEntry(String alias) throws KeyStoreDAOException;
     
     /**
-     * Return the date of the creation of the entry in the structure.
+     * Return all entries that name from the list of names matches the associated entry.
      * 
-     * @param alias
+     * @param name
      * @return
      * @throws KeyStoreDAOException
      */
-    Date engineGetCreationDate(String alias) throws KeyStoreDAOException;
+    List<KeyStoreEntry> getEntries(String name) throws KeyStoreDAOException;
     
-    void setMetaData(KeyStoreMetaData keyStoreMetaData) throws KeyStoreDAOException;
+    void setEntry(KeyStoreEntry entry) throws KeyStoreDAOException;
     
-    void setKeyStoreEntries(Collection<KeyStoreEntry> keyStoreEntries) throws KeyStoreDAOException;
-    
-    void deleteEntries(Collection<String> aliases) throws KeyStoreDAOException;
+    void deleteEntry(KeyStoreEntry entry) throws KeyStoreDAOException;
 }

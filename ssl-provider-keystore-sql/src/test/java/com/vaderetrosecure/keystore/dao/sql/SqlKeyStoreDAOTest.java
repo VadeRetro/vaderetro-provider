@@ -7,25 +7,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.Key;
 import java.security.UnrecoverableKeyException;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.sql.DataSource;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
-import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
-import com.vaderetrosecure.keystore.dao.KeyStoreMetaData;
+import com.vaderetrosecure.keystore.dao.IntegrityData;
+import com.vaderetrosecure.keystore.dao.KeyProtection;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
+import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 
 
 /**
@@ -36,56 +43,89 @@ public class SqlKeyStoreDAOTest
 {
     private static final String MASTER_PASSWORD = "master-password";
 
+    private static SqlKeyStoreDAOFactory daoFactory;
+    private static SecretKey secretKey;
     private KeyStoreDAO sqldao;
-    private SecretKey secretKey;
 
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception
+    {
+        secretKey = new SecretKeySpec("secret key".getBytes(StandardCharsets.US_ASCII), "AES");
+        daoFactory = new SqlKeyStoreDAOFactory();
+        Properties p = new Properties();
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("com.vaderetrosecure.keystore.dao.properties"))
+        {
+            p.load(is);
+        } 
+        daoFactory.init(p);
+    }
+    
     @Before
     public void setUp() throws Exception
     {
-        secretKey = new SecretKeySpec("secret key".getBytes(StandardCharsets.US_ASCII), "AES");
-        SqlKeyStoreDAOFactory daoFactory = new SqlKeyStoreDAOFactory();
-        Properties p = new Properties();
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("com.vaderetrosecure.keystore.dao.properties"))
-        {
-            p.load(is);
-        }
-        daoFactory.init(p);
         sqldao = daoFactory.getKeyStoreDAO();
+        dropTables(((SqlKeyStoreDAO) sqldao).getDataSource());
     }
 
+    private void dropTables(DataSource dataSource)
+    {
+        try (Connection conn = dataSource.getConnection())
+        {
+            DatabaseMetaData meta = conn.getMetaData();
+            try (ResultSet rs = meta.getTables(null, null, null, new String[] {"TABLE"}))
+            {
+                while (rs.next())
+                {
+                	try (PreparedStatement ps = conn.prepareStatement("drop table " + rs.getString(3)))
+                	{
+                		ps.executeUpdate();
+                	}
+                }
+            }
+        }
+        catch (SQLException e)
+        {
+        }
+    }
+    
     @Test
     public void testCreateSchema() throws KeyStoreDAOException
     {
-        sqldao.createSchema();
+        sqldao.checkDAOStructure();
     }
 
     @Test
-    public void testStoreLoadMetaData() throws KeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException, IOException
+    public void testStoreLoadIntegrityData() throws KeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException, IOException
     {
-        sqldao.createSchema();
-        KeyStoreMetaData ksemd = KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray());
-        ksemd.checkIntegrity(MASTER_PASSWORD.toCharArray());
-        sqldao.setMetaData(ksemd);
-        KeyStoreMetaData ksemdOut = sqldao.getMetaData();
-        ksemdOut.checkIntegrity(MASTER_PASSWORD.toCharArray());
-        Assert.assertArrayEquals(ksemd.getKeyIV(), ksemdOut.getKeyIV());
-        Assert.assertArrayEquals(ksemd.getKeyIVHash(), ksemdOut.getKeyIVHash());
+        sqldao.checkDAOStructure();
+        IntegrityData id = new IntegrityData(MASTER_PASSWORD.toCharArray());
+        id.checkIntegrity(MASTER_PASSWORD.toCharArray());
+        sqldao.setIntegrityData(id);
+        IntegrityData idOut = sqldao.getIntegrityData();
+        idOut.checkIntegrity(MASTER_PASSWORD.toCharArray());
+        Assert.assertArrayEquals(id.getCipheredData(), idOut.getCipheredData());
+        Assert.assertArrayEquals(id.getDataHash(), idOut.getDataHash());
     }
 
     @Test
     public void testStoreLoadSecretKey() throws KeyStoreDAOException, UnrecoverableKeyException, GeneralSecurityException, IOException
     {
         final String keyPassword = "key-password";
-        sqldao.createSchema();
-        KeyStoreMetaData ksemd = KeyStoreMetaData.generate(MASTER_PASSWORD.toCharArray());
-        ksemd.checkIntegrity(MASTER_PASSWORD.toCharArray());
-        sqldao.setMetaData(ksemd);
-        KeyStoreEntry kse = new KeyStoreEntry("key-alias", KeyStoreEntryType.SECRET_KEY, 0, Date.from(Instant.now()), secretKey.getAlgorithm(), ksemd.cipherKeyEntry(keyPassword.toCharArray(), secretKey.getEncoded()));
-        sqldao.setKeyStoreEntries(Collections.singletonList(kse));
-        List<KeyStoreEntry> entries = sqldao.getKeyStoreEntry("key-alias");
-        Assert.assertEquals(1, entries.size());
-        KeyStoreEntry kseOut = entries.get(0);
-        SecretKey skOut = new SecretKeySpec(ksemd.decipherKeyEntry(keyPassword.toCharArray(), kseOut.getData()), kseOut.getAlgorithm());
-        Assert.assertArrayEquals(secretKey.getEncoded(), skOut.getEncoded());
+        final String keyAlias = "key-alias";
+        sqldao.checkDAOStructure();
+        IntegrityData id = new IntegrityData(MASTER_PASSWORD.toCharArray());
+        id.checkIntegrity(MASTER_PASSWORD.toCharArray());
+        sqldao.setIntegrityData(id);
+        KeyProtection kp = KeyProtection.generateKeyProtection(keyPassword.toCharArray(), id.getSalt());
+        KeyStoreEntry kse = new KeyStoreEntry(keyAlias, Date.from(Instant.now()), secretKey, kp, Collections.emptyList(), Collections.emptyList());
+        kse.setLockedKeyProtection(kp.getLockedKeyProtection(null));
+        sqldao.setEntry(kse);
+        KeyStoreEntry kseOut = sqldao.getEntry(keyAlias);
+        Assert.assertNotNull(kseOut);
+        Assert.assertEquals(keyAlias, kseOut.getAlias());
+        KeyProtection kpOut = new KeyProtection(kseOut.getLockedKeyProtection(), null);
+        Key k = kseOut.getKey(kpOut);
+        Assert.assertTrue(SecretKey.class.isInstance(k));
+        Assert.assertArrayEquals(secretKey.getEncoded(), k.getEncoded());
     }
 }
