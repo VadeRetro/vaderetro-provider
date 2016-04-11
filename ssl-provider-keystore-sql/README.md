@@ -10,7 +10,7 @@ This factory will be loaded by the provider by settings the system variable at t
 ```bash
 java -Dcom.vaderetrosecure.keystore.dao.factory=com.vaderetrosecure.keystore.dao.sql.SqlKeyStoreDAOFactory my-project.jar
 ```
-.
+
 
 ## Defining the DAO property file
 
@@ -28,7 +28,7 @@ removeAbandonedTimeout = 60
 logAbandoned = true
 ```
 
-## Settings the database
+## Setting the database
 
 Before launching the application, be sure your database server is configured correctly: 
 * a database must exist, with the name defined in the url of the property file. In our MySQL example, it can be done with the command:
