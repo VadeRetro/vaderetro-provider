@@ -9,7 +9,9 @@ The Vade Redreo Provider library offers tools to manage keys and certificates dy
 
 ## Requirements
 
-The provider must run at least on Java 8 JVM.
+To work, the provider needs:
+* to run on Java 8 JVMs or higher
+* to use unlimited JCE (download at http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html).
 
 ## Project structure
 
