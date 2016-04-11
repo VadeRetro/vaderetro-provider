@@ -37,10 +37,6 @@ To use a DAO implementation, you must inform the provider which DAO factory to i
 java -Dcom.vaderetrosecure.keystore.dao.factory=com.mycompany.MyDAOFactoryImpl my-project.jar
 ```
 
-## Implementing a DAO
-
-To implement a DAO, make an implementation of the `com.vaderetrosecure.keystore.dao.KeyStoreDAO` interface. Then you must implement a DAO factory by extending the `com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory` class. This class will be the entry point of the provider, using the parameter given in the previous section.
-
 ## Using the keystore
 
 To use the keystore from the Vade Retro Provider, just follow the usual access process:
@@ -73,3 +69,37 @@ sslCtx.init(kmf.getKeyManagers(), null, null);
 
 ### Using it with Jetty
 
+## Improving security (since version: 0.4.0)
+
+Contrary to usual implementations of a key store, KeyStore and KeyManager objects just have a reference of the DAO. This means that the KeyManager object resolves all password protections dynamically to access keys at any time. But it can't because only the KeyStore object works with passwords.
+
+So, to be able to access keys, each password protection is stored with the key and ciphered using a public key from the KeyStore object. Then, each KeyManager object loads a private key to decipher the password protection and decipher the key with it.
+
+Consistency of KeyStore and KeyManager contracts are preserved because:
+* the KeyStore object must use password, because it can't decipher with its public key
+* the KeyManager object can __only__ decipher with its private key and never modify the referenced DAO.
+
+The KeyStore object will try to load the file `com.vaderetrosecure.key.public` as the public key from the classpath. The KeyManager will try to load the file `com.vaderetrosecure.key.private` as the private key from the classpath.
+
+To use this security improvement, please, follow these steps:
+1. generate a key pair (at least 2048-bit long)
+```
+openssl genrsa -out private.key.pem 2048
+openssl rsa -in private.key.pem -pubout -out public.key.pem
+```
+2. convert the private key in __PKCS8 DER__ format
+```
+openssl pkcs8 -topk8 -inform PEM -outform DER -in private.key.pem  -nocrypt > com.vaderetrosecure.key.private
+```
+3. convert the public key in __X509 DER__ format
+```
+openssl rsa -pubin -in public.key.pem -outform der -pubout -out com.vaderetrosecure.key.public
+```
+4. put the file `com.vaderetrosecure.key.public` in the classpath of your app managing the key store (KeyStore object)
+5. put the file `com.vaderetrosecure.key.private` in the classpath of your app reading the key store (KeyManager object).
+
+Remember that you can not to use this security improvement, but any entity that access to the DAO can decipher and modify stored keys. __It's strongly discouraged__. 
+
+## Implementing a DAO
+
+To implement a DAO, make an implementation of the `com.vaderetrosecure.keystore.dao.KeyStoreDAO` interface. Then you must implement a DAO factory by extending the `com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory` class. This class will be the entry point of the provider, using the parameter given in the previous section.
