@@ -18,12 +18,9 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
-import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -49,7 +46,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import com.vaderetrosecure.VadeRetroProvider;
 import com.vaderetrosecure.keystore.dao.IntegrityData;
 import com.vaderetrosecure.keystore.dao.KeyProtection;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
@@ -110,16 +106,6 @@ public class VRKeyStoreSpiTest
         when(ksdao.getIntegrityData()).thenReturn(id);
         
         keystore = new VRKeyStoreSpi(ksdao);
-    }
-
-    @Test
-    public void testGetInstanceFromVRProvider() throws KeyStoreException, NoSuchProviderException
-    {
-        System.setProperty(KeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
-        Security.addProvider(new VadeRetroProvider());
-        KeyStore ks = KeyStore.getInstance("KS", "VR");
-        Assert.assertEquals("VR", ks.getProvider().getName());
-        Assert.assertEquals("KS", ks.getType());
     }
 
     @Test(expected=IOException.class)

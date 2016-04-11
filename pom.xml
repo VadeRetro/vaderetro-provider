@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.vaderetrosecure</groupId>
 	<artifactId>vaderetro-provider</artifactId>
-	<version>0.4.1-SNAPSHOT</version>
+	<version>0.4.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vaderetro-provider</name>
 	<properties>

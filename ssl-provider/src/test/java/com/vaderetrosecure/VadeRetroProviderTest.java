@@ -17,14 +17,15 @@ import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
 
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.vaderetrosecure.keystore.dao.IntegrityData;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
-import com.vaderetrosecure.keystore.dao.IntegrityData;
 
 /**
  * @author ahonore
@@ -34,25 +35,31 @@ public class VadeRetroProviderTest
 {
     private VadeRetroProvider vrProvider = new VadeRetroProvider();
     
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception
+    {
+        System.setProperty(KeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
+    }
+    
     @Before
     public void setUp() throws Exception
     {
         Security.addProvider(vrProvider);
     }
 
-    @Ignore
     @Test
-    public void testGetKeystore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException
+    public void testGetKeystore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, NoSuchProviderException
     {
-        System.setProperty(KeyStoreDAOFactory.DAO_FACTORY_CLASS_NAME, MockVRKeyStoreDAOFactory.class.getName());
-        KeyStore ks = KeyStore.getInstance(vrProvider.getName());
+        KeyStore ks = KeyStore.getInstance("KS", vrProvider.getName());
         ks.load(null, null);
     }
 
     @Test
     public void testGetSSLContext() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, NoSuchProviderException
     {
-        SSLContext.getInstance("TLS", vrProvider.getName());
+        SSLContext sslCtx = SSLContext.getInstance("TLS", vrProvider.getName());
+        Assert.assertEquals("TLS", sslCtx.getProtocol());
+        Assert.assertEquals(vrProvider.getName(), sslCtx.getProvider().getName());
     }
 
     public static class MockVRKeyStoreDAOFactory extends KeyStoreDAOFactory
