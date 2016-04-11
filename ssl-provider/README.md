@@ -69,7 +69,7 @@ sslCtx.init(kmf.getKeyManagers(), null, null);
 
 ### Using it with Jetty
 
-## Improving security (since version: 0.4.0)
+## Improving security (since version 0.4.0)
 
 Contrary to usual implementations of a key store, KeyStore and KeyManager objects just have a reference of the DAO. This means that the KeyManager object resolves all password protections dynamically to access keys at any time. But it can't because only the KeyStore object works with passwords.
 
