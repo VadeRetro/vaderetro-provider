@@ -18,12 +18,14 @@ You can add it dynamically to your code or statically for all the JVM instances.
 ### Dynamic Registration
 
 To register dynamically the provider, just put one line of code into a static block somewhere in a class:
+
 ```java
 static
 {
 	Security.addProvider(new VadeRetroProvider());
 }
 ```
+
 Now, you're ready to play with it.
 
 ### Static Registration
@@ -39,12 +41,14 @@ To use a DAO implementation, you must inform the provider which DAO factory to i
 ## Using the keystore
 
 To use the keystore from the Vade Retro Provider, just follow the usual access process:
+
 ```java
 char[] password = getPassword(...);
 KeyStore ks = KeyStore.getInstance("KS", "VR");
 ks.load(null, password);
 ...
 ```
+
 Then follow the methods of the KeyStore engine, defined in Java.
 
 
@@ -53,6 +57,7 @@ Then follow the methods of the KeyStore engine, defined in Java.
 ### Creating the context
 
 To use the SSL context from the Vade Retro Provider, just follow the usual access process:
+
 ```java
 // get a keystore instance
 char[] password = getPassword(...);
@@ -85,18 +90,24 @@ The KeyStore object will try to load the file `com.vaderetrosecure.key.public` a
 To use this security improvement, please, follow these steps:
 
 * generate a key pair (at least 2048-bit long):
+
 ```
 openssl genrsa -out private.key.pem 2048
 openssl rsa -in private.key.pem -pubout -out public.key.pem
 ```
+
 * convert the private key in __PKCS8 DER__ format:
+
 ```
 openssl pkcs8 -topk8 -inform PEM -outform DER -in private.key.pem  -nocrypt > com.vaderetrosecure.key.private
 ```
+
 * convert the public key in __X509 DER__ format:
+
 ```
 openssl rsa -pubin -in public.key.pem -outform der -pubout -out com.vaderetrosecure.key.public
 ```
+
 * put the file `com.vaderetrosecure.key.public` in the classpath of your app managing the key store (KeyStore object).
 
 * put the file `com.vaderetrosecure.key.private` in the classpath of your app reading the key store (KeyManager object).
