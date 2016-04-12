@@ -85,18 +85,18 @@ The KeyStore object will try to load the file `com.vaderetrosecure.key.public` a
 To use this security improvement, please, follow these steps:
 
 * generate a key pair (at least 2048-bit long):
-
-	openssl genrsa -out private.key.pem 2048
-	openssl rsa -in private.key.pem -pubout -out public.key.pem
-
+```
+openssl genrsa -out private.key.pem 2048
+openssl rsa -in private.key.pem -pubout -out public.key.pem
+```
 * convert the private key in __PKCS8 DER__ format:
-
-	openssl pkcs8 -topk8 -inform PEM -outform DER -in private.key.pem  -nocrypt > com.vaderetrosecure.key.private
-
+```
+openssl pkcs8 -topk8 -inform PEM -outform DER -in private.key.pem  -nocrypt > com.vaderetrosecure.key.private
+```
 * convert the public key in __X509 DER__ format:
-
-	openssl rsa -pubin -in public.key.pem -outform der -pubout -out com.vaderetrosecure.key.public
-
+```
+openssl rsa -pubin -in public.key.pem -outform der -pubout -out com.vaderetrosecure.key.public
+```
 * put the file `com.vaderetrosecure.key.public` in the classpath of your app managing the key store (KeyStore object).
 
 * put the file `com.vaderetrosecure.key.private` in the classpath of your app reading the key store (KeyManager object).
