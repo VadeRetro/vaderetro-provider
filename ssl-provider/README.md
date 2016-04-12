@@ -133,7 +133,7 @@ server.addConnector(httpsConnector);
 
 ```
 
-Now, your code is ready to use our SSLContext with an implementation of a DAO. 
+Now, your code is ready to use our SSLContext with SNI and an implementation of a DAO. 
 
 ## Improving security (since version 0.4.0)
 
