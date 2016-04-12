@@ -33,9 +33,8 @@ To register statically the provider, please follow the explanations from the [Ja
 ## Setting the DAO factory
 
 To use a DAO implementation, you must inform the provider which DAO factory to instantiate. The provider will try to get the `com.vaderetrosecure.keystore.dao.factory` system variable. To set it, just put an argument in the command line, like this:
-```
-java -Dcom.vaderetrosecure.keystore.dao.factory=com.mycompany.MyDAOFactoryImpl my-project.jar
-```
+
+	java -Dcom.vaderetrosecure.keystore.dao.factory=com.mycompany.MyDAOFactoryImpl my-project.jar
 
 ## Using the keystore
 
@@ -84,21 +83,23 @@ Consistency of KeyStore and KeyManager contracts are preserved because:
 The KeyStore object will try to load the file `com.vaderetrosecure.key.public` as the public key from the classpath. The KeyManager will try to load the file `com.vaderetrosecure.key.private` as the private key from the classpath.
 
 To use this security improvement, please, follow these steps:
-1. generate a key pair (at least 2048-bit long)
-```
-openssl genrsa -out private.key.pem 2048
-openssl rsa -in private.key.pem -pubout -out public.key.pem
-```
-2. convert the private key in __PKCS8 DER__ format
-```
-openssl pkcs8 -topk8 -inform PEM -outform DER -in private.key.pem  -nocrypt > com.vaderetrosecure.key.private
-```
-3. convert the public key in __X509 DER__ format
-```
-openssl rsa -pubin -in public.key.pem -outform der -pubout -out com.vaderetrosecure.key.public
-```
-4. put the file `com.vaderetrosecure.key.public` in the classpath of your app managing the key store (KeyStore object)
-5. put the file `com.vaderetrosecure.key.private` in the classpath of your app reading the key store (KeyManager object).
+
+* generate a key pair (at least 2048-bit long):
+
+	openssl genrsa -out private.key.pem 2048
+	openssl rsa -in private.key.pem -pubout -out public.key.pem
+
+* convert the private key in __PKCS8 DER__ format:
+
+	openssl pkcs8 -topk8 -inform PEM -outform DER -in private.key.pem  -nocrypt > com.vaderetrosecure.key.private
+
+* convert the public key in __X509 DER__ format:
+
+	openssl rsa -pubin -in public.key.pem -outform der -pubout -out com.vaderetrosecure.key.public
+
+* put the file `com.vaderetrosecure.key.public` in the classpath of your app managing the key store (KeyStore object).
+
+* put the file `com.vaderetrosecure.key.private` in the classpath of your app reading the key store (KeyManager object).
 
 Remember that you can not to use this security improvement, but any entity that access to the DAO can decipher and modify stored keys. __It's strongly discouraged__. 
 
