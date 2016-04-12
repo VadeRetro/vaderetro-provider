@@ -62,9 +62,11 @@ To use the SSL context from the Vade Retro Provider, just follow the usual acces
 // get a keystore instance
 char[] password = getPassword(...);
 KeyStore ks = KeyStore.getInstance("KS", "VR");
+
 // get an instance of the Vade Retro X509  key manager factory
 KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509", "VR");
 kmf.init(KeyStore.getInstance("KS", "VR"), null);
+
 // create a TLS context with dynamic keys management
 SSLContext sslCtx = SSLContext.getInstance("TLS", "VR");
 sslCtx.init(kmf.getKeyManagers(), null, null);
@@ -73,7 +75,7 @@ sslCtx.init(kmf.getKeyManagers(), null, null);
 
 ### Using it with Jetty
 
-Now, let's show you how to use it in web application with Jetty. Just keep in mind that it must run with Jetty 9.3.4.v20151007 or higher.
+Now, let's see you how to use it in web applications with Jetty. Just keep in mind that it must run with Jetty 9.3.4.v20151007 or higher.
 
 The main goal is to replace the default Jetty class `SslContextFactory` behavior with ours. In general, the context is set by defining an usual key store, like this:
 
@@ -83,15 +85,18 @@ sslContextFactory.setKeyStorePath("path/to/keystore.jks");
 sslContextFactory.setKeyStorePassword("a password");
 sslContextFactory.setKeyManagerPassword("an other password");
 ```
-which create a default SSLContext Java object internally. Now, we use our code to create our own SSLContext object and override the Jetty one:
+
+which creates a default SSLContext Java object internally. Then, we use our code to create our own SSLContext object and override the Jetty one:
 
 ```java
 // get a keystore instance
 char[] password = getPassword(...);
 KeyStore ks = KeyStore.getInstance("KS", "VR");
+
 // get an instance of the Vade Retro X509  key manager factory
 KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509", "VR");
 kmf.init(KeyStore.getInstance("KS", "VR"), null);
+
 // create a TLS context with dynamic keys management
 SSLContext sslCtx = SSLContext.getInstance("TLS", "VR");
 sslCtx.init(kmf.getKeyManagers(), null, null);
@@ -104,16 +109,31 @@ sslContextFactory.setSslContext(sslCtx);
 Then, we can end the HTTPS connector declaration as usual:
 
 ```java
-// https Configuration
+// a server and an HTTP configuration must be defined first
+Server server = new Server(...);
+HttpConfiguration httpConfiguration = new HttpConfiguration();
+...
+
+// an HTTP connector can be used
+ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfiguration));
+...
+server.addConnector(httpConnector);
+
+// now, the HTTPS configuration object can be created
 HttpConfiguration httpsConfiguration = new HttpConfiguration(httpConfiguration);
 httpsConfiguration.addCustomizer(new SecureRequestCustomizer(true));
+
+// HTTPS connector
 ServerConnector httpsConnector = new ServerConnector(server, 
 	new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
 	new HttpConnectionFactory(httpsConfiguration));
+
 // add the connector to the server
 server.addConnector(httpsConnector);
 
 ```
+
+Now, your code is ready to use our SSLContext with an implementation of a DAO. 
 
 ## Improving security (since version 0.4.0)
 
