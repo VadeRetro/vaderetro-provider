@@ -83,7 +83,7 @@
 					<execution>
 						<id>attach-sources</id>
 						<goals>
-							<goal>jar</goal>
+							<goal>jar-no-fork</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -92,10 +92,18 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
-					<show>private</show>
+					<show>protected</show>
 					<nohelp>true</nohelp>
-					<bottom><![CDATA[Copyright 2015, <a href="http://www.vade-retro.com">VadeRetro Technology<a>]]>
+					<bottom><![CDATA[Copyright 2016, <a href="http://www.vade-retro.com">VadeRetro Technology<a>]]>
 					</bottom>
 				</configuration>
 			</plugin>
