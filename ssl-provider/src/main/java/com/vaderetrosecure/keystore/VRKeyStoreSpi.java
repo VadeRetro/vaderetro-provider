@@ -57,10 +57,17 @@ import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
 
 /**
+ * The KeyStore of the Vade Retro Provider.
+ * This key store is backed by a DAO, so a DAO implementation must be provided for this class to work.
+ * To use it:<br>
+ *  {@code KeyStore keyStore = KeyStore.getInstance("KS", VadeRetroProvider.VR_PROVIDER);}<br>
+ * <br>
+ * To improve security, password protections are ciphered with a public key. Just add the file
+ * {@code com.vaderetrosecure.key.public}, containing a public key in the X509 DER format. The public 
+ * key must be at least 2048-bit long.
+ * 
  * @author ahonore
- *
- *         private/public key pair size for key protection must be at least
- *         2048.
+ * @see com.vaderetrosecure.keystore.dao.KeyStoreDAO
  */
 public class VRKeyStoreSpi extends KeyStoreSpi
 {
@@ -71,6 +78,9 @@ public class VRKeyStoreSpi extends KeyStoreSpi
     private KeyStoreDAO keystoreDAO;
     private PublicKey publicKey;
 
+    /**
+     * Construct a new Vade Retro KeyStore object.
+     */
     public VRKeyStoreSpi()
     {
         keystoreDAO = null;
@@ -292,6 +302,12 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         }
     }
 
+    /**
+     * Not implemented.
+     * Throw an UnsupportedOperationException exception.
+     * 
+     * @see java.security.KeyStoreSpi#engineSetKeyEntry(java.lang.String, byte[], java.security.cert.Certificate[])
+     */
     @Override
     public void engineSetKeyEntry(String alias, byte[] key, Certificate[] chain) throws KeyStoreException
     {
@@ -491,6 +507,16 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * @param stream unused because DAO is responsible of the real access. Just set it to <code>null</code>.
+     * @param password the integrity password, set it to an other password to change it.
+     * @throws IOException if the DAO is not loaded, or an access to it can not be performed.
+     * @throws NoSuchAlgorithmException if the integrity can not be checked.
+     * @throws CertificateException never thrown in this implementation.
+     * @see java.security.KeyStoreSpi#engineStore(java.io.OutputStream, char[])
+     */
     @Override
     public void engineStore(OutputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException
     {
@@ -515,6 +541,16 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * @param stream unused because DAO is responsible of the real access. Just set it to <code>null</code>.
+     * @param password the integrity password, if set to <code>null</code>, the integrity check will not be performed.
+     * @throws IOException if the DAO is not loaded, or an access to it can not be performed.
+     * @throws NoSuchAlgorithmException if the integrity can not be checked.
+     * @throws CertificateException never thrown in this implementation.
+     * @see java.security.KeyStoreSpi#engineLoad(java.io.InputStream, char[])
+     */
     @Override
     public void engineLoad(InputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException
     {

@@ -12,24 +12,25 @@ import com.vaderetrosecure.ssl.VRKeyManagerFactorySpi;
 import com.vaderetrosecure.ssl.TLSSSLContextSpi;
 
 /**
- * @author ahonore
- *
  * This is the class to access all Vade Retro services.
- * To add an instance at runtime, use:
+ * To add an instance at runtime, use:<br>
+ * <br>
  * <code>
- *  import java.security.Provider;
- *  import com.vaderetrosecure.VadeRetroProvider;
- *  
- *  Security.addProvider(new VadeRetroProvider());
+ *  import java.security.Provider;<br>
+ *  import com.vaderetrosecure.VadeRetroProvider;<br>
+ *  <br>
+ *  Security.addProvider(new VadeRetroProvider());<br>
  * </code>
- * 
+ * <br>
  * The provider can also be configured as part of your environment via static registration by adding an entry to 
- * the java.security properties file (found in $JAVA_HOME/jre/lib/security/java.security, where $JAVA_HOME is the location of 
- * your JDK/JRE distribution). You'll find detailed instructions in the file but basically it comes down to adding a line:
- * <code>
- *  security.provider.\<n\>=com.vaderetrosecure.VadeRetroProvider
- * </code>
- * where \<n\> is the preference you want the provider at (1 being the most preferred). 
+ * the java.security properties file (found in {@code $JAVA_HOME/jre/lib/security/java.security}, where {@code $JAVA_HOME} is the location of 
+ * your JDK/JRE distribution). You'll find detailed instructions in the file but basically it comes down to adding a line:<br>
+ * <br>
+ * {@code security.provider.<n>=com.vaderetrosecure.VadeRetroProvider}<br>
+ * <br>
+ * where {@code <n>} is the preference you want the provider at (1 being the most preferred).
+ *  
+ * @author ahonore
  */
 public class VadeRetroProvider extends Provider
 {

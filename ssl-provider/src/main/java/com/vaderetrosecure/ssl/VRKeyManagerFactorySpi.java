@@ -32,8 +32,23 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 
 /**
+ * The KeyManager of the Vade Retro Provider.
+ * This key manager is backed by a DAO, so a DAO implementation must be provided for this class to work.
+ * To use it:<br>
+ * <br>
+ * <code>
+ * KeyStore ks = KeyStore.getInstance("KS", VadeRetroProvider.VR_PROVIDER);<br>
+ * KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509", VadeRetroProvider.VR_PROVIDER);<br>
+ * kmf.init(ks, null);<br>
+ * </code>
+ * <br>
+ * If stored password protections were ciphered with a public key from {@link com.vaderetrosecure.keystore.VRKeyStoreSpi}, 
+ * they are deciphered with a private key. Just add the file {@code com.vaderetrosecure.key.private}, containing 
+ * a private key in the PKCS8 DER format. The private key must be at least 2048-bit long.
+ * 
  * @author ahonore
- *
+ * @see com.vaderetrosecure.keystore.dao.KeyStoreDAO
+ * @see com.vaderetrosecure.keystore.VRKeyStoreSpi
  */
 public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 {
@@ -57,6 +72,14 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
         return keyManagers;
     }
 
+    /**
+     * Not implemented.
+     * Throw an UnsupportedOperationException exception.
+     * 
+     * {@inheritDoc}
+     * 
+     * @see javax.net.ssl.KeyManagerFactorySpi#engineInit(javax.net.ssl.ManagerFactoryParameters)
+     */
     @Override
     protected void engineInit(ManagerFactoryParameters spec) throws InvalidAlgorithmParameterException
     {
