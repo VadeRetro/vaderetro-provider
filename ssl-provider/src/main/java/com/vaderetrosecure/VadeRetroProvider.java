@@ -14,13 +14,35 @@ import com.vaderetrosecure.ssl.TLSSSLContextSpi;
 /**
  * @author ahonore
  *
+ * This is the class to access all Vade Retro services.
+ * To add an instance at runtime, use:
+ * <code>
+ *  import java.security.Provider;
+ *  import com.vaderetrosecure.VadeRetroProvider;
+ *  
+ *  Security.addProvider(new VadeRetroProvider());
+ * </code>
+ * 
+ * The provider can also be configured as part of your environment via static registration by adding an entry to 
+ * the java.security properties file (found in $JAVA_HOME/jre/lib/security/java.security, where $JAVA_HOME is the location of 
+ * your JDK/JRE distribution). You'll find detailed instructions in the file but basically it comes down to adding a line:
+ * <code>
+ *  security.provider.\<n\>=com.vaderetrosecure.VadeRetroProvider
+ * </code>
+ * where \<n\> is the preference you want the provider at (1 being the most preferred). 
  */
 public class VadeRetroProvider extends Provider
 {
     private static final long serialVersionUID = -5763788919498367657L;
     
+    /**
+     * The name of the Vade Retro provider. This variable can be used to avoid manipulating a string in the code.
+     */
     public static final String VR_PROVIDER = "VR";
 
+    /**
+     * Construct a new provider.
+     */
     public VadeRetroProvider()
     {
         super(VR_PROVIDER, 0.1, "Vade Retro Security provider");
