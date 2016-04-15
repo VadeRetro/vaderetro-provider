@@ -27,7 +27,7 @@
 	<parent>
 		<groupId>com.vaderetrosecure</groupId>
 		<artifactId>vaderetro-provider</artifactId>
-		<version>0.4.2-SNAPSHOT</version>
+		<version>0.4.3-SNAPSHOT</version>
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -56,12 +56,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-				<systemProperties>
-            <property>
-              <name>com.vaderetrosecure.keystore.dao.factory</name>
-              <value>com.vaderetrosecure.VadeRetroProviderTest$MockVRKeyStoreDAOFactory</value>
-            </property>
-          </systemProperties>
 					<!-- Sets the VM argument line used when unit tests are run. -->
 					<argLine>-Dcom.vaderetrosecure.keystore.dao.factory=com.vaderetrosecure.VadeRetroProviderTest$MockVRKeyStoreDAOFactory ${surefireArgLine}</argLine>
 					<excludes>
@@ -96,8 +90,7 @@
 				<configuration>
 					<show>protected</show>
 					<nohelp>true</nohelp>
-					<bottom><![CDATA[Copyright 2016, <a href="http://www.vade-retro.com">VadeRetro Technology<a>]]>
-					</bottom>
+					<bottom><![CDATA[Copyright 2016, <a href="http://www.vade-retro.com">VadeRetro Technology<a>]]></bottom>
 				</configuration>
 			</plugin>
 		</plugins>
