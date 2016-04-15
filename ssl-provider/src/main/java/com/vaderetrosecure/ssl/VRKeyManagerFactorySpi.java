@@ -34,14 +34,12 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 /**
  * The KeyManager of the Vade Retro Provider.
  * This key manager is backed by a DAO, so a DAO implementation must be provided for this class to work.
- * To use it:<br>
- * <br>
+ * To use it:
+ * <pre>
  * <code>
- * KeyStore ks = KeyStore.getInstance("KS", VadeRetroProvider.VR_PROVIDER);<br>
- * KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509", VadeRetroProvider.VR_PROVIDER);<br>
- * kmf.init(ks, null);<br>
- * </code>
- * <br>
+ * KeyStore ks = KeyStore.getInstance("KS", VadeRetroProvider.VR_PROVIDER);
+ * KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509", VadeRetroProvider.VR_PROVIDER);
+ * kmf.init(ks, null);</code></pre>
  * If stored password protections were ciphered with a public key from {@link com.vaderetrosecure.keystore.VRKeyStoreSpi}, 
  * they are deciphered with a private key. Just add the file {@code com.vaderetrosecure.key.private}, containing 
  * a private key in the PKCS8 DER format. The private key must be at least 2048-bit long.
