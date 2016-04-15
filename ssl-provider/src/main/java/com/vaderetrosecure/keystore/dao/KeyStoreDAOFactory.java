@@ -10,8 +10,20 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 
 /**
+ * This class is the base class for an implementation of a DAO.
+ * An implementor of a DAO must do 2 things:
+ * <ul>
+ * <li>implement the {@linkplain com.vaderetrosecure.keystore.dao.KeyStoreDAO DAO interface}.</li>
+ * <li>extend this class to instantiate its own DAO implementation.</li>
+ * </ul>
+ * <br>
+ * The implemented factory is instantiated using the property given with JVM parameters:
+ * <pre>
+ * <code>
+ * java -Dcom.vaderetrosecure.keystore.dao.factory=com.company.MyDAOFactory ...</code></pre>
+ * if the implementor's factory is {@code com.company.MyDAOFactory}.
+ * 
  * @author ahonore
- *
  */
 public abstract class KeyStoreDAOFactory
 {
@@ -26,6 +38,15 @@ public abstract class KeyStoreDAOFactory
     {
     }
     
+    /**
+     * Return the current KeyStoreDAOFactory instance.
+     * If the instance is not available yet, a new factory is created, given the value of the
+     * {@code com.vaderetrosecure.keystore.dao.factory} property. Then, the factory is initialized 
+     * by calling the {@link #init(Properties)} method.
+     * 
+     * @return the KeyStoreDAOFactory instance.
+     * @throws KeyStoreDAOException if an exception occurs when instantiating or initializing the factory.
+     */
     public static KeyStoreDAOFactory getInstance() throws KeyStoreDAOException
     {
         if (INSTANCE != null)
@@ -76,7 +97,20 @@ public abstract class KeyStoreDAOFactory
         }
     }
     
+    /**
+     * Initialize the KeyStoreDAO object with properties from the {@code com.vaderetrosecure.keystore.dao.properties} file, given in the classpath.
+     * You can, for example, specify parameters to an underlying driver.
+     * 
+     * @param properties properties to initialize the KeyStoreDAO object with.
+     * @throws KeyStoreDAOException if an initialization error occurs.
+     */
     protected abstract void init(Properties properties) throws KeyStoreDAOException;
     
+    /**
+     * Give an instantiated KeyStoreDAO object that performs access to real data.
+     * 
+     * @return an instantiated KeyStoreDAO object. 
+     * @throws KeyStoreDAOException if an error occurs when providing an instance.
+     */
     public abstract KeyStoreDAO getKeyStoreDAO() throws KeyStoreDAOException;
 }
