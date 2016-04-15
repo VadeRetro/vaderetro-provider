@@ -26,8 +26,17 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
+ * This class represents a entry in the key store.
+ * This is the main class an implementors must deal with to provide a {@code KeyStoreDAO}. Each instance represents one of the following entry:
+ * <ul>
+ * <li>a secret key, if {@code getEntryType() == KeyStoreEntryType.SECRET_KEY}</li>
+ * <li>a trusted certificate, if {@code getEntryType() == KeyStoreEntryType.TRUSTED_CERTIFICATE}</li>
+ * <li>a private key, if {@code getEntryType() == KeyStoreEntryType.PRIVATE_KEY}, eventually associated with a certificate chain and certificate names.</li>
+ * </ul>
+ * Here, certificate names are used by the SSL context to perform SNI matching.
+ * 
  * @author ahonore
- *
+ * @see com.vaderetrosecure.keystore.dao.KeyStoreDAO
  */
 public class KeyStoreEntry
 {
@@ -40,11 +49,26 @@ public class KeyStoreEntry
     private List<CertificateData> certificateChain;
     private List<String> names;
 
+    /**
+     * Construct a default {@code KeyStoreEntry} object.
+     */
     protected KeyStoreEntry()
     {
         this("", Date.from(Instant.now()), KeyStoreEntryType.TRUSTED_CERTIFICATE, null, new byte[]{}, null, Collections.emptyList(), Collections.emptyList());
     }
 
+    /**
+     * Construct a new {@code KeyStoreEntry} object.
+     * 
+     * @param alias the alias associated with this entry.
+     * @param creationDate the date the entry was created.
+     * @param entryType the type of entry.
+     * @param algorithm the algorithm of the key (i.e. RSA, DSA...)
+     * @param entryData the entry as an array of bytes.
+     * @param lockedKeyProtection the protection used to cipher the {@code entryData}.
+     * @param certificateChain the certificate chain in case of a private key, empty otherwise.
+     * @param names names extracted from the first certificate, empty if no certificate chain is associated.
+     */
     public KeyStoreEntry(String alias, Date creationDate, KeyStoreEntryType entryType, String algorithm, byte[] entryData, LockedKeyProtection lockedKeyProtection, List<CertificateData> certificateChain, List<String> names)
     {
         this.alias = alias;
@@ -57,6 +81,14 @@ public class KeyStoreEntry
         this.names = names;
     }
     
+    /**
+     * Construct a new {@code KeyStoreEntry} object, containing a trusted certificate.
+     * 
+     * @param alias the alias associated with this entry.
+     * @param creationDate the date the entry was created.
+     * @param trustedCertificate the trsuted certificate.
+     * @throws CertificateEncodingException if the certificate can not be extracted as bytes.
+     */
     public KeyStoreEntry(String alias, Date creationDate, Certificate trustedCertificate) throws CertificateEncodingException
     {
         this.alias = alias;
@@ -69,6 +101,23 @@ public class KeyStoreEntry
         this.names = Collections.emptyList();
     }
 
+    /**
+     * Construct a new {@code KeyStoreEntry} object, containing a secret or a private key.
+     * 
+     * @param alias the alias associated with this entry.
+     * @param creationDate the date the entry was created.
+     * @param key the secret or private key.
+     * @param keyProtection the KeyProtection object used to protect the key.
+     * @param certificateChain the certificate chain if the entry is a private key, empty otherwise.
+     * @param names names extracted from the first certificate, empty if no certificate chain is associated.
+     * @throws InvalidKeyException if the KeyProtection object key is wrong.
+     * @throws NoSuchAlgorithmException if the protection algorithm is not found.
+     * @throws InvalidKeySpecException if the KeyProtection object uses a bad parameter.
+     * @throws NoSuchPaddingException if the KeyProtection object key is wrong.
+     * @throws InvalidAlgorithmParameterException if the KeyProtection object uses a bad parameter.
+     * @throws IllegalBlockSizeException if the KeyProtection object key is wrong.
+     * @throws BadPaddingException if the KeyProtection object key is wrong.
+     */
     public KeyStoreEntry(String alias, Date creationDate, Key key, KeyProtection keyProtection, List<CertificateData> certificateChain, List<String> names) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         this(alias, creationDate, (PrivateKey.class.isInstance(key)) ? KeyStoreEntryType.PRIVATE_KEY : KeyStoreEntryType.SECRET_KEY, key, keyProtection, certificateChain, Collections.emptyList());
@@ -86,41 +135,83 @@ public class KeyStoreEntry
         this.names = names;
     }
     
+    /**
+     * Give the alias associated with this entry.
+     * 
+     * @return the alias.
+     */
     public String getAlias()
     {
         return alias;
     }
 
+    /**
+     * Assign an alias to this object.
+     * 
+     * @param alias the alias.
+     */
     public void setAlias(String alias)
     {
         this.alias = alias;
     }
 
+    /**
+     * Give the date the entry was created.
+     * 
+     * @return the date.
+     */
     public Date getCreationDate()
     {
         return creationDate;
     }
 
+    /**
+     * Assign the date the entry was created to this object.
+     * 
+     * @param creationDate the date.
+     */
     public void setCreationDate(Date creationDate)
     {
         this.creationDate = creationDate;
     }
 
+    /**
+     * Give the type of entry.
+     * 
+     * @return the type of entry.
+     * @see com.vaderetrosecure.keystore.dao.KeyStoreEntryType
+     */
     public KeyStoreEntryType getEntryType()
     {
         return entryType;
     }
 
+    /**
+     * Assign a type of entry to this object.
+     * An entry type is 
+     * 
+     * @param entryType
+     */
     public void setEntryType(KeyStoreEntryType entryType)
     {
         this.entryType = entryType;
     }
 
+    /**
+     * Give the name of the algorithm of this entry.
+     * 
+     * @return the name of the algorithm.
+     */
     public String getAlgorithm()
     {
         return algorithm;
     }
 
+    /**
+     * Give the name of the algorithm of this entry.
+     * 
+     * @param algorithm
+     */
     public void setAlgorithm(String algorithm)
     {
         this.algorithm = algorithm;
