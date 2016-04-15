@@ -25,17 +25,15 @@ import org.apache.log4j.Logger;
 
 /**
  * The SSLContext of the Vade Retro Provider.
- * This SSL context is backed by a DAO, so a DAO implementation must be provided for this class to work.<br>
- * To use it:<br>
- * <br>
+ * This SSL context is backed by a DAO, so a DAO implementation must be provided for this class to work.
+ * To use it:
+ * <pre>
  * <code>
- * KeyStore ks = KeyStore.getInstance("KS", VadeRetroProvider.VR_PROVIDER);<br>
- * KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509", VadeRetroProvider.VR_PROVIDER);<br>
- * kmf.init(ks, null);<br>
- * SSLContext sslCtx = SSLContext.getInstance("TLS", VadeRetroProvider.VR_PROVIDER);<br>
- * sslCtx.init(kmf.getKeyManagers(), null, null);<br>
- * </code>
- * <br>
+ * KeyStore ks = KeyStore.getInstance("KS", VadeRetroProvider.VR_PROVIDER);
+ * KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509", VadeRetroProvider.VR_PROVIDER);
+ * kmf.init(ks, null);
+ * SSLContext sslCtx = SSLContext.getInstance("TLS", VadeRetroProvider.VR_PROVIDER);
+ * sslCtx.init(kmf.getKeyManagers(), null, null);</code></pre>
  * This context delegates most of its behavior to the default TLS context. But it adds the SNI management 
  * and the DAO access to retrieve certificates and private keys.
  * 
