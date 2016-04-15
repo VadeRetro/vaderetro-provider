@@ -59,9 +59,10 @@ import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
 /**
  * The KeyStore of the Vade Retro Provider.
  * This key store is backed by a DAO, so a DAO implementation must be provided for this class to work.
- * To use it:<br>
- *  {@code KeyStore keyStore = KeyStore.getInstance("KS", VadeRetroProvider.VR_PROVIDER);}<br>
- * <br>
+ * To use it:
+ * <pre>
+ * <code>
+ * KeyStore keyStore = KeyStore.getInstance("KS", VadeRetroProvider.VR_PROVIDER);</code></pre>
  * To improve security, password protections are ciphered with a public key. Just add the file
  * {@code com.vaderetrosecure.key.public}, containing a public key in the X509 DER format. The public 
  * key must be at least 2048-bit long.
