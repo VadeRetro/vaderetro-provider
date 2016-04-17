@@ -217,46 +217,121 @@ public class KeyStoreEntry
         this.algorithm = algorithm;
     }
 
+    /**
+     * Return the entry data.
+     * The entry is a raw entry and must be decoded using the {@code getKey()} or {@code getTrustedCertificate()} method.
+     * 
+     * @return the entry data as an array of bytes.
+     * @see #getKey(KeyProtection)
+     * @see #getTrustedCertificate()
+     */
     public byte[] getEntryData()
     {
         return entryData;
     }
 
+    /**
+     * Assign entry data to this object.
+     * This method is called by constructors when ciphering keys or encoding trusted certificates.
+     * 
+     * @param entryData an array of bytes as entry data.
+     */
     public void setEntryData(byte[] entryData)
     {
         this.entryData = entryData;
     }
 
+    /**
+     * Return the {@code LockedKeyProtection} object used to protect the key.
+     * 
+     * @return the LockedKeyProtection object, or null if the entry is a trusted certificate.
+     */
     public LockedKeyProtection getLockedKeyProtection()
     {
         return lockedKeyProtection;
     }
 
+    /**
+     * Assign a {@code LockedKeyProtection} object to this object.
+     * It can be set to {@code null} if the entry is a trusted certificate.
+     * 
+     * @param lockedKeyProtection a {@code LockedKeyProtection} object.
+     */
     public void setLockedKeyProtection(LockedKeyProtection lockedKeyProtection)
     {
         this.lockedKeyProtection = lockedKeyProtection;
     }
 
+    /**
+     * Give the certificate chain.
+     * It can be an empty list if the entry is:
+     * <ul>
+     * <li>a secret key</li>
+     * <li>a private key.</li>
+     * </ul>
+     * The list is ordered from the certificate associated to the private key to the certificate of the global authority.
+     * 
+     * @return the certificate chain.
+     */
     public List<CertificateData> getCertificateChain()
     {
         return certificateChain;
     }
 
+    /**
+     * Assign a certificate chain to this object.
+     * 
+     * @param certificateChain a certificate chain, or an empty list.
+     */
     public void setCertificateChain(List<CertificateData> certificateChain)
     {
         this.certificateChain = certificateChain;
     }
 
+    /**
+     * Give the names associated to the first certificate of the chain.
+     * Names are extracted from the {@code CN} and {@code Subject Alt dNS} names.
+     * It can be an empty list if the entry is:
+     * <ul>
+     * <li>a secret key</li>
+     * <li>a trusted certificate.</li>
+     * </ul>
+     * 
+     * @return the list of names associated to the certificate chain.
+     */
     public List<String> getNames()
     {
         return names;
     }
 
+    /**
+     * Assign a list of names to this object.
+     * 
+     * @param names the list of names.
+     */
     public void setNames(List<String> names)
     {
         this.names = names;
     }
     
+    /**
+     * Return the key represented by this object.
+     * It can be:
+     * <ul>
+     * <li>a secret key, if {@code getEntryType() == KeyStoreEntryType.SECRET_KEY}</li>
+     * <li>a private key, if {@code getEntryType() == KeyStoreEntryType.PRIVATE_KEY}.</li>
+     * </ul>
+     * 
+     * @param keyProtection the key protection to decipher entry data.
+     * @return the key, or null if the entry is not a key.
+     * @throws InvalidKeyException if the KeyProtection object is wrong.
+     * @throws NoSuchAlgorithmException if the algorithm can not be found.
+     * @throws InvalidKeySpecException if the KeyProtection object is wrong.
+     * @throws NoSuchPaddingException if the algorithm is wrong.
+     * @throws InvalidAlgorithmParameterException if the KeyProtection object is wrong.
+     * @throws IllegalBlockSizeException if entry data are wrong.
+     * @throws BadPaddingException if entry data are wrong.
+     */
     public Key getKey(KeyProtection keyProtection) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         byte[] encKey = CryptoTools.decipherData(getEntryData(), keyProtection.getKey(), keyProtection.getIV());
@@ -276,11 +351,32 @@ public class KeyStoreEntry
         return k;
     }
 
+    /**
+     * Assign a key to this object.
+     * The key is ciphered using the {@code KeyProtection} object given in parameter.
+     * 
+     * @param key the key.
+     * @param keyProtection the KeyProtection object to cipher the key.
+     * @throws InvalidKeyException if the KeyProtection object is wrong.
+     * @throws NoSuchAlgorithmException if the ciphering algorithm can not be found.
+     * @throws InvalidKeySpecException if the KeyProtection object is wrong.
+     * @throws NoSuchPaddingException if the key can not be ciphered.
+     * @throws InvalidAlgorithmParameterException if the ciphering algorithm is wrong.
+     * @throws IllegalBlockSizeException if the key can not be ciphered.
+     * @throws BadPaddingException if the key can not be ciphered.
+     */
     public void setKey(Key key, KeyProtection keyProtection) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
         setEntryData(CryptoTools.cipherData(key.getEncoded(), keyProtection.getKey(), keyProtection.getIV()));
     }
 
+    /**
+     * Return the entry as a trusted certificate.
+     * 
+     * @return the certificate.
+     * @throws IOException if entry data can not be processed.
+     * @throws CertificateException if entry data are not representing a certificate.
+     */
     public Certificate getTrustedCertificate() throws IOException, CertificateException
     {
         return CryptoTools.decodeCertificate(getEntryData());
