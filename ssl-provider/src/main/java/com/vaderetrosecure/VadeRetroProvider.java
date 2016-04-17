@@ -25,7 +25,7 @@ import com.vaderetrosecure.ssl.TLSSSLContextSpi;
  * your JDK/JRE distribution). You'll find detailed instructions in the file but basically it comes down to adding a line:
  * <pre>
  * <code>
- * security.provider.<n>=com.vaderetrosecure.VadeRetroProvider</code></pre>
+ * security.provider.&lt;n&gt;=com.vaderetrosecure.VadeRetroProvider</code></pre>
  * where {@code <n>} is the preference you want the provider at (1 being the most preferred).
  *  
  * @author ahonore
