@@ -23,16 +23,16 @@ class StructureManager
 {
     private static final Logger LOG = Logger.getLogger(StructureManager.class);
 
-    public static final String VERSIONS_TABLE = "versions";
-    public static final String ENTRIES_TABLE = "entries";
-    public static final String INTEGRITY_TABLE = "integrity";
-    public static final String NAMES_TABLE = "names";
-    public static final String CERTIFICATE_CHAINS_TABLE = "certificate_chains";
+    static final String VERSIONS_TABLE = "versions";
+    static final String ENTRIES_TABLE = "entries";
+    static final String INTEGRITY_TABLE = "integrity";
+    static final String NAMES_TABLE = "names";
+    static final String CERTIFICATE_CHAINS_TABLE = "certificate_chains";
     
-    public static final int ENTRIES_VERSION = 1;
-    public static final int INTEGRITY_VERSION = 1;
-    public static final int NAMES_VERSION = 1;
-    public static final int CERTIFICATE_CHAINS_VERSION = 1;
+    static final int ENTRIES_VERSION = 1;
+    static final int INTEGRITY_VERSION = 1;
+    static final int NAMES_VERSION = 1;
+    static final int CERTIFICATE_CHAINS_VERSION = 1;
     
     private DataSource dataSource;
     
