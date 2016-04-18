@@ -16,8 +16,10 @@ import org.apache.log4j.Logger;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 
 /**
+ * This class manages the structure of the store.
+ * It is an helper for creating or updating tables if needed.
+ * 
  * @author ahonore
- *
  */
 class StructureManager
 {
@@ -36,11 +38,22 @@ class StructureManager
     
     private DataSource dataSource;
     
+    /**
+     * Construct a new {@code StructureManager} object.
+     * 
+     * @param dataSource the data source to access the SQL database. 
+     */
     public StructureManager(DataSource dataSource)
     {
         this.dataSource = dataSource;
     }
     
+    /**
+     * Return {@code true} if the table, that manages table versions, exists.
+     * 
+     * @return true if it exists, false otherwise.
+     * @throws KeyStoreDAOException if the database can not be accessed.
+     */
     public boolean versionsTableExists() throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection())
@@ -62,7 +75,12 @@ class StructureManager
         }
     }
     
-    public void manageKeysTable() throws KeyStoreDAOException
+    /**
+     * Manage, create or update the table of entries. 
+     * 
+     * @throws KeyStoreDAOException if the database can not be accessed.
+     */
+    public void manageEntriesTable() throws KeyStoreDAOException
     {
         StringBuilder sb = new StringBuilder();
         sb.append("create table if not exists ");
@@ -100,6 +118,11 @@ class StructureManager
         }
     }
     
+    /**
+     * Manage, create or update the table of certificate chains. 
+     * 
+     * @throws KeyStoreDAOException if the database can not be accessed.
+     */
     public void manageCertificateChainsTable() throws KeyStoreDAOException
     {
         StringBuilder sb = new StringBuilder();
@@ -132,6 +155,11 @@ class StructureManager
         }
     }
     
+    /**
+     * Manage, create or update the table of names. 
+     * 
+     * @throws KeyStoreDAOException if the database can not be accessed.
+     */
     public void manageNamesTable() throws KeyStoreDAOException
     {
         StringBuilder sb = new StringBuilder();
@@ -165,6 +193,11 @@ class StructureManager
         }
     }
     
+    /**
+     * Manage, create or update the table containing integrity data. 
+     * 
+     * @throws KeyStoreDAOException if the database can not be accessed.
+     */
     public void manageIntegrityTable() throws KeyStoreDAOException
     {
         StringBuilder sb = new StringBuilder();
@@ -199,6 +232,11 @@ class StructureManager
         }
     }
     
+    /**
+     * Create the table of versions if it does not exist. 
+     * 
+     * @throws KeyStoreDAOException if the database can not be accessed.
+     */
     public void createVersionsTable() throws KeyStoreDAOException
     {
         try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("create table if not exists " + VERSIONS_TABLE + " (table_name varchar(128) not null, version int not null, primary key(table_name))"))
