@@ -21,8 +21,31 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
 
 /**
+ * This class is a part of the implementation of the SQL DAO.
+ * <p>
+ * This factory instantiates the {SqlKeyStoreDAO} class by:
+ * <ul>
+ * <li>loading the SQL driver</li>
+ * <li>creating a connection pool initialized from user properties</li>
+ * <li>creating the {@code DataSource} object</li>
+ * <li>instantiating a {@code KeyStoreDAO} object, giving the {@code DataSource} object. 
+ * </ul>
+ * <p>
+ * At least the following properties must be specified:
+ * <ul>
+ * <li>{@code driverClassName}: the full SQL driver class name (for example {@code driverClassName = com.mysql.jdbc.Driver} for the MySQL driver)</li>
+ * <li>{@code url}: the URL of the database connection (for example {@code url = jdbc:mysql://myserver.com/DataBase} for a MySQL connection)</li>
+ * <li>{@code user}: the user name to connect to the database</li>
+ * <li>{@code password}: the password of the user.</li>
+ * </ul>
+ * <p>
+ * This implementation uses the <a href="https://commons.apache.org/proper/commons-dbcp/">Apache DBCP 2 component</a> to
+ * create connection pools and {@code DataSource} objects. So, all configuration parameters defined 
+ * <a href="https://commons.apache.org/proper/commons-dbcp/configuration.html">here</a> can be used in this factory.
+ * 
  * @author ahonore
- *
+ * @see com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory
+ * @see com.vaderetrosecure.keystore.dao.sql.SqlKeyStoreDAO
  */
 public class SqlKeyStoreDAOFactory extends KeyStoreDAOFactory
 {
