@@ -23,7 +23,7 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
 /**
  * This class is a part of the implementation of the SQL DAO.
  * <p>
- * This factory instantiates the {SqlKeyStoreDAO} class by:
+ * This factory instantiates the {@code SqlKeyStoreDAO} class by:
  * <ul>
  * <li>loading the SQL driver</li>
  * <li>creating a connection pool initialized from user properties</li>
