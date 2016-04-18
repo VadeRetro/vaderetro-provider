@@ -104,6 +104,7 @@
 					<show>package</show>
 					<nohelp>true</nohelp>
 					<bottom><![CDATA[Copyright 2016, <a href="http://www.vade-retro.com">VadeRetro Technology<a>]]></bottom>
+					<docfilessubdirs>true</docfilessubdirs>
 				</configuration>
 			</plugin>
 		</plugins>
