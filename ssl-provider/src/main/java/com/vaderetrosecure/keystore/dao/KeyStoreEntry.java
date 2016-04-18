@@ -188,9 +188,9 @@ public class KeyStoreEntry
 
     /**
      * Assign a type of entry to this object.
-     * An entry type is 
+     * This method is called at object construction.
      * 
-     * @param entryType
+     * @param entryType the type of entry.
      */
     public void setEntryType(KeyStoreEntryType entryType)
     {
@@ -210,7 +210,7 @@ public class KeyStoreEntry
     /**
      * Give the name of the algorithm of this entry.
      * 
-     * @param algorithm
+     * @param algorithm the name of the algorithm.
      */
     public void setAlgorithm(String algorithm)
     {
