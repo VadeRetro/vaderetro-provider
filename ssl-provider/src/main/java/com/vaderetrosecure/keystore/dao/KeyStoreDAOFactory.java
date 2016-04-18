@@ -10,17 +10,16 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 
 /**
- * This class is the base class for an implementation of a DAO.
+ * This class is one of the base classes for implementing a DAO.
  * An implementor of a DAO must do 2 things:
  * <ul>
  * <li>implement the {@linkplain com.vaderetrosecure.keystore.dao.KeyStoreDAO DAO interface}.</li>
  * <li>extend this class to instantiate its own DAO implementation.</li>
  * </ul>
- * <br>
+ * <p>
  * The implemented factory is instantiated using the property given with JVM parameters:
  * <pre>
- * <code>
- * java -Dcom.vaderetrosecure.keystore.dao.factory=com.company.MyDAOFactory ...</code></pre>
+ * {@code java -Dcom.vaderetrosecure.keystore.dao.factory=com.company.MyDAOFactory ...}</pre>
  * if the implementor's factory is {@code com.company.MyDAOFactory}.
  * 
  * @author ahonore
