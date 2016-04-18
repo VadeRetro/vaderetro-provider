@@ -54,7 +54,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
         if (!sm.versionsTableExists())
             sm.createVersionsTable();
         sm.manageIntegrityTable();
-        sm.manageKeysTable();
+        sm.manageEntriesTable();
         sm.manageCertificateChainsTable();
         sm.manageNamesTable();
     }
