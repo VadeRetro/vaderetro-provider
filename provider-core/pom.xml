@@ -2,10 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>ssl-provider</artifactId>
+	<artifactId>provider-core</artifactId>
 	<name>Vade Retro Provider Core</name>
 	<description>Vade Retro SSL Provider core library</description>
-	<url>https://github.com/VadeRetro/vaderetro-provider/tree/master/ssl-provider</url>
+	<url>https://github.com/VadeRetro/vaderetro-provider/tree/master/provider-core</url>
 	<licenses>
 		<license>
 			<name>MIT License</name>
@@ -21,8 +21,8 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git@github.com:VadeRetro/vaderetro-provider.git/ssl-provider</connection>
-		<url>git@github.com:VadeRetro/vaderetro-provider.git/ssl-provider</url>
+		<connection>scm:git:git@github.com:VadeRetro/vaderetro-provider.git/provider-core</connection>
+		<url>git@github.com:VadeRetro/vaderetro-provider.git/provider-core</url>
 	</scm>
 	<parent>
 		<groupId>com.vaderetrosecure</groupId>

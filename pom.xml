@@ -189,7 +189,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.vaderetrosecure</groupId>
-				<artifactId>ssl-provider</artifactId>
+				<artifactId>provider-core</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -200,7 +200,7 @@
 		</dependencies>
 	</dependencyManagement>
 	<modules>
-		<module>ssl-provider</module>
-		<module>ssl-provider-keystore-sql</module>
+		<module>provider-core</module>
+		<module>provider-keystore-sql</module>
 	</modules>
 </project>

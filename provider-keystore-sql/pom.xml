@@ -2,10 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>ssl-provider-keystore-sql</artifactId>
-	<name>Vade Retro SSL Provider SQL key store implementation</name>
+	<artifactId>provider-keystore-sql</artifactId>
+	<name>Vade Retro Provider SQL key store implementation</name>
 	<description>A SQL key store DAO implementation for the Vade Retro Provider</description>
-	<url>https://github.com/VadeRetro/vaderetro-provider/tree/master/ssl-provider-keystore-sql</url>
+	<url>https://github.com/VadeRetro/vaderetro-provider/tree/master/provider-keystore-sql</url>
 	<licenses>
 		<license>
 			<name>MIT License</name>
@@ -21,8 +21,8 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git@github.com:VadeRetro/vaderetro-provider.git/ssl-provider-keystore-sql</connection>
-		<url>git@github.com:VadeRetro/vaderetro-provider.git/ssl-provider-keystore-sql</url>
+		<connection>scm:git:git@github.com:VadeRetro/vaderetro-provider.git/provider-keystore-sql</connection>
+		<url>git@github.com:VadeRetro/vaderetro-provider.git/provider-keystore-sql</url>
 	</scm>
 	<parent>
 		<groupId>com.vaderetrosecure</groupId>
@@ -55,7 +55,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.vaderetrosecure</groupId>
-			<artifactId>ssl-provider</artifactId>
+			<artifactId>provider-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
