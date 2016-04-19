@@ -2,10 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>ssl-provider-keystore-sql</artifactId>
-	<name>Vade Retro SSL Provider SQL key store implementation</name>
-	<description>A SQL key store DAO implementation for the Vade Retro Provider</description>
-	<url>https://github.com/VadeRetro/vaderetro-provider/tree/master/ssl-provider-keystore-sql</url>
+	<artifactId>provider-core</artifactId>
+	<name>Vade Retro Provider Core</name>
+	<description>Vade Retro SSL Provider core library</description>
+	<url>https://github.com/VadeRetro/vaderetro-provider/tree/master/provider-core</url>
 	<licenses>
 		<license>
 			<name>MIT License</name>
@@ -21,8 +21,8 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git@github.com:VadeRetro/vaderetro-provider.git/ssl-provider-keystore-sql</connection>
-		<url>git@github.com:VadeRetro/vaderetro-provider.git/ssl-provider-keystore-sql</url>
+		<connection>scm:git:git@github.com:VadeRetro/vaderetro-provider.git/provider-core</connection>
+		<url>git@github.com:VadeRetro/vaderetro-provider.git/provider-core</url>
 	</scm>
 	<parent>
 		<groupId>com.vaderetrosecure</groupId>
@@ -49,19 +49,6 @@
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-dbcp2</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.vaderetrosecure</groupId>
-			<artifactId>ssl-provider</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -70,7 +57,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<!-- Sets the VM argument line used when unit tests are run. -->
-					<argLine>${surefireArgLine}</argLine>
+					<argLine>-Dcom.vaderetrosecure.keystore.dao.factory=com.vaderetrosecure.VadeRetroProviderTest$MockVRKeyStoreDAOFactory ${surefireArgLine}</argLine>
 					<excludes>
 						<exclude>it/**</exclude>
 					</excludes>
@@ -101,10 +88,9 @@
 					</execution>
 				</executions>
 				<configuration>
-					<show>package</show>
+					<show>protected</show>
 					<nohelp>true</nohelp>
 					<bottom><![CDATA[Copyright 2016, <a href="http://www.vade-retro.com">VadeRetro Technology<a>]]></bottom>
-					<docfilessubdirs>true</docfilessubdirs>
 				</configuration>
 			</plugin>
 		</plugins>

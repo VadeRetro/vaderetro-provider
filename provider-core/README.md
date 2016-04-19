@@ -1,4 +1,4 @@
-# Vade Retro SSL Provider
+# Vade Retro Provider: Provider Core
 
 ## Overview
 

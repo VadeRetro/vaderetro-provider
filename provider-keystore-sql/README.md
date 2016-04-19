@@ -1,4 +1,4 @@
-# Vade Retro SSL Provider: SQL keystore implementation
+# Vade Retro Provider: Provider Keystore SQL
 
 ## Overview
 

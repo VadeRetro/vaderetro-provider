@@ -16,5 +16,5 @@ To work, the provider needs:
 ## Project structure
 
 This project is divided into 2 sub projects:
-* [SSL provider](ssl-provider), the core library that gives all the services
-* [SSL provider Keystore SQL](ssl-provider-keystore-sql), a SQL implementation of the DAO.
+* [Provider Core](provider-core), the core library that gives all the services
+* [Provider Keystore SQL](provider-keystore-sql), a SQL implementation of the DAO.
