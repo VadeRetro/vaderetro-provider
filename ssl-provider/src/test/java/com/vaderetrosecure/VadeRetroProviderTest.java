@@ -13,7 +13,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
 import java.security.cert.CertificateException;
-import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
 
@@ -65,7 +64,7 @@ public class VadeRetroProviderTest
     public static class MockVRKeyStoreDAOFactory extends KeyStoreDAOFactory
     {
         @Override
-        protected void init(Properties properties) throws KeyStoreDAOException
+        protected void init() throws KeyStoreDAOException
         {
         }
 

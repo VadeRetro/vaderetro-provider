@@ -4,7 +4,6 @@
 package com.vaderetrosecure.keystore.dao.sql;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -17,7 +16,6 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Properties;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -51,13 +49,8 @@ public class SqlKeyStoreDAOTest
     public static void setUpBeforeClass() throws Exception
     {
         secretKey = new SecretKeySpec("secret key".getBytes(StandardCharsets.US_ASCII), "AES");
-        daoFactory = new SqlKeyStoreDAOFactory();
-        Properties p = new Properties();
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("com.vaderetrosecure.keystore.dao.properties"))
-        {
-            p.load(is);
-        } 
-        daoFactory.init(p);
+        daoFactory = new TestSqlKeyStoreDAOFactory();
+        daoFactory.init();
     }
     
     @Before
@@ -127,5 +120,17 @@ public class SqlKeyStoreDAOTest
         Key k = kseOut.getKey(kpOut);
         Assert.assertTrue(SecretKey.class.isInstance(k));
         Assert.assertArrayEquals(secretKey.getEncoded(), k.getEncoded());
+    }
+    
+    public static class TestSqlKeyStoreDAOFactory extends SqlKeyStoreDAOFactory
+    {
+
+        @Override
+        public void init() throws KeyStoreDAOException
+        {
+            // TODO Auto-generated method stub
+            super.init();
+        }
+        
     }
 }

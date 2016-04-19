@@ -30,7 +30,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Properties;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -184,7 +183,7 @@ public class VRKeyStoreSpiTest
     public static class MockVRKeyStoreDAOFactory extends KeyStoreDAOFactory
     {
         @Override
-        protected void init(Properties properties) throws KeyStoreDAOException
+        protected void init() throws KeyStoreDAOException
         {
         }
 

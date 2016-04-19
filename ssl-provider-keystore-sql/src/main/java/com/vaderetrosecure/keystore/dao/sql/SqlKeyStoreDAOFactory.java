@@ -3,6 +3,8 @@
  */
 package com.vaderetrosecure.keystore.dao.sql;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -31,7 +33,8 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
  * <li>instantiating a {@code KeyStoreDAO} object, giving the {@code DataSource} object. 
  * </ul>
  * <p>
- * At least the following properties must be specified:
+ * This factory must be given some properties by adding the file {@code com.vaderetrosecure.keystore.dao.properties}
+ * to the class path. At least the following properties must be specified:
  * <ul>
  * <li>{@code driverClassName}: the full SQL driver class name (for example {@code driverClassName = com.mysql.jdbc.Driver} for the MySQL driver)</li>
  * <li>{@code url}: the URL of the database connection (for example {@code url = jdbc:mysql://myserver.com/DataBase} for a MySQL connection)</li>
@@ -49,8 +52,10 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
  */
 public class SqlKeyStoreDAOFactory extends KeyStoreDAOFactory
 {
-    private final static Logger LOG = Logger.getLogger(SqlKeyStoreDAOFactory.class);
+    private static final Logger LOG = Logger.getLogger(SqlKeyStoreDAOFactory.class);
     
+    private static final String DAO_FACTORY_PROPERTIES_FILE_NAME = "com.vaderetrosecure.keystore.dao.properties";
+
     private KeyStoreDAO keyStoreDAO;
     
     public SqlKeyStoreDAOFactory()
@@ -59,11 +64,13 @@ public class SqlKeyStoreDAOFactory extends KeyStoreDAOFactory
     }
 
     @Override
-    protected void init(Properties properties) throws KeyStoreDAOException
+    protected void init() throws KeyStoreDAOException
     {
         try
         {
-            keyStoreDAO = new SqlKeyStoreDAO(createDataSource(properties));
+            Properties prop = loadProperties();
+            DataSource dataSource = createDataSource(prop);
+            keyStoreDAO = new SqlKeyStoreDAO(dataSource);
         }
         catch (ClassNotFoundException e)
         {
@@ -76,6 +83,29 @@ public class SqlKeyStoreDAOFactory extends KeyStoreDAOFactory
     public KeyStoreDAO getKeyStoreDAO() throws KeyStoreDAOException
     {
         return keyStoreDAO;
+    }
+    
+    private Properties loadProperties()
+    {
+        //  loading properties file
+        String propFile = System.getProperty(DAO_FACTORY_PROPERTIES_FILE_NAME, "com.vaderetrosecure.keystore.dao.properties");
+        Properties prop = new Properties();
+        Thread.currentThread().getContextClassLoader().getResource("com.vaderetrosecure.keystore.dao.properties");
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(propFile))
+        {
+            if (is == null)
+                LOG.warn("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_NAME + "' file");
+            else
+                prop.load(is);
+            return prop;
+        }
+        catch (IOException e)
+        {
+            LOG.warn(e);
+            LOG.debug(e, e);
+        }
+        
+        return prop;
     }
 
     private DataSource createDataSource(Properties properties) throws ClassNotFoundException 

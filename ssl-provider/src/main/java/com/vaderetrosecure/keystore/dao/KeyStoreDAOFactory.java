@@ -3,10 +3,6 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 import org.apache.log4j.Logger;
 
 /**
@@ -30,7 +26,6 @@ public abstract class KeyStoreDAOFactory
 
     public static final String DAO_FACTORY_CLASS_NAME = "com.vaderetrosecure.keystore.dao.factory";
     
-    private static final String DAO_FACTORY_PROPERTIES_FILE_NAME = "com.vaderetrosecure.keystore.dao.properties";
     private static KeyStoreDAOFactory INSTANCE = null;
     
     protected KeyStoreDAOFactory()
@@ -41,7 +36,7 @@ public abstract class KeyStoreDAOFactory
      * Return the current KeyStoreDAOFactory instance.
      * If the instance is not available yet, a new factory is created, given the value of the
      * {@code com.vaderetrosecure.keystore.dao.factory} property. Then, the factory is initialized 
-     * by calling the {@link #init(Properties)} method.
+     * by calling the {@link #init()} method.
      * 
      * @return the KeyStoreDAOFactory instance.
      * @throws KeyStoreDAOException if an exception occurs when instantiating or initializing the factory.
@@ -62,8 +57,7 @@ public abstract class KeyStoreDAOFactory
             @SuppressWarnings("unchecked")
             Class<KeyStoreDAOFactory> cl = (Class<KeyStoreDAOFactory>) Class.forName(factoryClassStr);
             factory = cl.newInstance();
-            Properties prop = loadProperties();
-            factory.init(prop);
+            factory.init();
         }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException e)
         {
@@ -75,35 +69,13 @@ public abstract class KeyStoreDAOFactory
         return INSTANCE;
     }
     
-    private static Properties loadProperties() throws KeyStoreDAOException
-    {
-        //  loading properties file
-        String propFile = System.getProperty(DAO_FACTORY_PROPERTIES_FILE_NAME, "com.vaderetrosecure.keystore.dao.properties");
-        Properties prop = new Properties();
-        Thread.currentThread().getContextClassLoader().getResource("com.vaderetrosecure.keystore.dao.properties");
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(propFile))
-        {
-            if (is == null)
-                LOG.warn("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_NAME + "' file");
-            else
-                prop.load(is);
-            return prop;
-        }
-        catch (IOException e)
-        {
-            LOG.warn(e);
-            throw new KeyStoreDAOException(e);
-        }
-    }
-    
     /**
-     * Initialize the KeyStoreDAO object with properties from the {@code com.vaderetrosecure.keystore.dao.properties} file, given in the classpath.
-     * You can, for example, specify parameters to an underlying driver.
+     * Initialize the {@code KeyStoreDAO} object.
+     * The implementor can use this method to load parameters needed by an underlying driver.
      * 
-     * @param properties properties to initialize the KeyStoreDAO object with.
      * @throws KeyStoreDAOException if an initialization error occurs.
      */
-    protected abstract void init(Properties properties) throws KeyStoreDAOException;
+    protected abstract void init() throws KeyStoreDAOException;
     
     /**
      * Give an instantiated KeyStoreDAO object that performs access to real data.
