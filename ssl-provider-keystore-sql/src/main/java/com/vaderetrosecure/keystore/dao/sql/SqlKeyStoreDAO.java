@@ -28,8 +28,13 @@ import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
 
 /**
+ * This class implements the DAO backed by an SQL database.
+ * Please, refer to the associated factory and the package documentation to know 
+ * how to use it properly.
+ * 
  * @author ahonore
- *
+ * @see SqlKeyStoreDAOFactory
+ * @see com.vaderetrosecure.keystore.dao.sql
  */
 class SqlKeyStoreDAO implements KeyStoreDAO
 {
@@ -37,11 +42,23 @@ class SqlKeyStoreDAO implements KeyStoreDAO
 
     private DataSource dataSource;
 
+    /**
+     * Construct a new {@code SqlKeyStoreDAO} object.
+     * A {@code DataSource} object is given to manage SQL connections.
+     * 
+     * @param dataSource the DataSource object.
+     */
     SqlKeyStoreDAO(DataSource dataSource)
     {
         this.dataSource = dataSource;
     }
 
+    /**
+     * Return the {@code DataSource} object associated to this object.
+     * It is used internally by other classes of the implementation.
+     * 
+     * @return the {@code DataSource} object.
+     */
     DataSource getDataSource()
     {
     	return dataSource;
