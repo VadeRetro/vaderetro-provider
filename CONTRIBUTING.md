@@ -10,7 +10,7 @@ Be sure to have the Java JDK 8 installed on your system.
 
 Fork, then clone the repository:
 
-	git clone git@github.com:VadeRetro/vaderetro-provider.git
+	git clone git@github.com:YOUR-REPO/vaderetro-provider.git
 
 Set the upstream remote:
 
