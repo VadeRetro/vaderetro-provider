@@ -26,7 +26,7 @@ import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
  */
 class VRSNIMatcher extends SNIMatcher
 {
-    private final static Logger LOG = Logger.getLogger(VRSNIMatcher.class);
+    private static final Logger LOG = Logger.getLogger(VRSNIMatcher.class);
 
     private final KeyStoreDAO keyStoreDAO;
     private List<KeyStoreEntry> selectedEntries;
