@@ -69,7 +69,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         if (aliases == null)
             return null;
         
-        return getSelectedSNIAlias(keyType, issuers, engine.getSSLParameters().getSNIMatchers());
+        return getSelectedSNIAlias(keyType, engine.getSSLParameters().getSNIMatchers());
     }
 
     @Override
@@ -85,7 +85,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         if (aliases == null)
             return null;
         
-        return getSelectedSNIAlias(keyType, issuers, ((SSLSocket) socket).getSSLParameters().getSNIMatchers());
+        return getSelectedSNIAlias(keyType, ((SSLSocket) socket).getSSLParameters().getSNIMatchers());
     }
 
     @Override
@@ -159,7 +159,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         return null;
     }
 
-    private String getSelectedSNIAlias(String keyType, Principal[] issuers, Collection<SNIMatcher> sniMatchers)
+    private String getSelectedSNIAlias(String keyType, Collection<SNIMatcher> sniMatchers)
     {
         for (SNIMatcher m : sniMatchers)
         {
