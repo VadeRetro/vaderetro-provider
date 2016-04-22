@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.vaderetrosecure</groupId>
 	<artifactId>vaderetro-provider</artifactId>
-	<version>0.5.2-SNAPSHOT</version>
+	<version>0.5.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Vade Retro Provider</name>
 	<description>A provider to use SSL contexts with SNI and key stores using a simple key store DAO interface</description>
