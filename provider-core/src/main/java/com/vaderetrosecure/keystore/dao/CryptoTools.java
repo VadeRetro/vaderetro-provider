@@ -120,18 +120,16 @@ final class CryptoTools
         return cipher.doFinal(cipheredData);
     }
     
-    public static Certificate decodeCertificate(byte[] encodedCertificate) throws IOException, CertificateException
+    public static Certificate decodeCertificate(byte[] encodedCertificate) throws CertificateException
     {
         try (InputStream is = new ByteArrayInputStream(encodedCertificate))
         {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             return cf.generateCertificate(is);
         }
-//        catch (IOException | CertificateException e)
-//        {
-//            LOG.debug(e, e);
-//            LOG.error(e);
-//            throw e;
-//        }
+        catch (IOException e)
+        {
+            throw new CertificateException(e);
+        }
     }
 }
