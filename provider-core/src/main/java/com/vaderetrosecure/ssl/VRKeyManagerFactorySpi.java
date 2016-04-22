@@ -52,7 +52,7 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
 {
     private static final Logger LOG = Logger.getLogger(VRKeyManagerFactorySpi.class);
 
-    private final static String VR_KEYSTORE_PRIVATE_KEY_FILE = "com.vaderetrosecure.key.private";
+    private static final String VR_KEYSTORE_PRIVATE_KEY_FILE = "com.vaderetrosecure.key.private";
 
     private KeyManager keyManagers[];
     
