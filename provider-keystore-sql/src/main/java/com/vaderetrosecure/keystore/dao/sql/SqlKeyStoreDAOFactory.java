@@ -88,10 +88,8 @@ public class SqlKeyStoreDAOFactory extends KeyStoreDAOFactory
     private Properties loadProperties()
     {
         //  loading properties file
-        String propFile = System.getProperty(DAO_FACTORY_PROPERTIES_FILE_NAME, "com.vaderetrosecure.keystore.dao.properties");
         Properties prop = new Properties();
-        Thread.currentThread().getContextClassLoader().getResource("com.vaderetrosecure.keystore.dao.properties");
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(propFile))
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(DAO_FACTORY_PROPERTIES_FILE_NAME))
         {
             if (is == null)
                 LOG.warn("unable to load '" + DAO_FACTORY_PROPERTIES_FILE_NAME + "' file");
