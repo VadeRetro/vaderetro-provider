@@ -3,7 +3,6 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -374,10 +373,9 @@ public class KeyStoreEntry
      * Return the entry as a trusted certificate.
      * 
      * @return the certificate.
-     * @throws IOException if entry data can not be processed.
      * @throws CertificateException if entry data are not representing a certificate.
      */
-    public Certificate getTrustedCertificate() throws IOException, CertificateException
+    public Certificate getTrustedCertificate() throws CertificateException
     {
         return CryptoTools.decodeCertificate(getEntryData());
     }
