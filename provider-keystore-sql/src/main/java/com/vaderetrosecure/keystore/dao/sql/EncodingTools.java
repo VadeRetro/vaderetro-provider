@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
  */
 final class EncodingTools
 {
-    private final static Logger LOG = Logger.getLogger(EncodingTools.class);
+    private static final Logger LOG = Logger.getLogger(EncodingTools.class);
 
     private static final Lock LOCK = new ReentrantLock();
     private static MessageDigest SHA2_DIGEST;
