@@ -3,7 +3,6 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import java.io.IOException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -78,10 +77,9 @@ public class CertificateData
      * Return the Certificate object from the encoded array of bytes of this object.
      * 
      * @return the certificate
-     * @throws IOException if the array of bytes can not be read.
      * @throws CertificateException if the Certificate object can not be created from the array of bytes.
      */
-    public Certificate getCertificate() throws IOException, CertificateException
+    public Certificate getCertificate() throws CertificateException
     {
         return CryptoTools.decodeCertificate(getEncodedCertificate());
     }
