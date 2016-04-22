@@ -56,8 +56,8 @@ public class TLSSSLContextSpi extends SSLContextSpi
         }
         catch (NoSuchAlgorithmException e)
         {
-        	LOG.fatal(e, e);
-        	throw new IllegalStateException(e);
+            LOG.fatal(e, e);
+            throw new IllegalStateException(e);
         }
     }
     

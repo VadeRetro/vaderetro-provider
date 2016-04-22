@@ -40,7 +40,7 @@ import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
  */
 public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
 {
-    private final static Logger LOG = Logger.getLogger(SNIX509ExtendedKeyManager.class);
+    private static final Logger LOG = Logger.getLogger(SNIX509ExtendedKeyManager.class);
 
     private KeyStoreDAO keyStoreDAO;
     private PrivateKey privateKey;
@@ -92,23 +92,23 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     @Override
     public X509Certificate[] getCertificateChain(String alias)
     {
-		try
-		{
-		    KeyStoreEntry kse = keyStoreDAO.getEntry(alias);
-	        if ((kse != null) && (kse.getEntryType() == KeyStoreEntryType.PRIVATE_KEY) && !kse.getCertificateChain().isEmpty())
-	        {
-	            List<X509Certificate> certs = new ArrayList<>();
-	            for (CertificateData ce : kse.getCertificateChain())
-	                certs.add((X509Certificate) ce.getCertificate());
-	            
-	            return certs.toArray(new X509Certificate[] {});
-	        }
-		}
-		catch (KeyStoreDAOException | CertificateException e)
-		{
+        try
+        {
+            KeyStoreEntry kse = keyStoreDAO.getEntry(alias);
+            if ((kse != null) && (kse.getEntryType() == KeyStoreEntryType.PRIVATE_KEY) && !kse.getCertificateChain().isEmpty())
+            {
+                List<X509Certificate> certs = new ArrayList<>();
+                for (CertificateData ce : kse.getCertificateChain())
+                    certs.add((X509Certificate) ce.getCertificate());
+                
+                return certs.toArray(new X509Certificate[] {});
+            }
+        }
+        catch (KeyStoreDAOException | CertificateException e)
+        {
             LOG.debug(e, e);
             LOG.error(e);
-		}
+        }
         
         return null;
     }
@@ -122,20 +122,20 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
     @Override
     public PrivateKey getPrivateKey(String alias)
     {
-		try
-		{
-		    KeyStoreEntry kse = keyStoreDAO.getEntry(alias);
-		    if (kse.getEntryType() == KeyStoreEntryType.PRIVATE_KEY)
-		    {
-		        KeyProtection kp = new KeyProtection(kse.getLockedKeyProtection(), privateKey);
-		        return (PrivateKey) kse.getKey(kp);
-		    }
-		}
-		catch (KeyStoreDAOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException | InvalidAlgorithmParameterException e)
-		{
+        try
+        {
+            KeyStoreEntry kse = keyStoreDAO.getEntry(alias);
+            if (kse.getEntryType() == KeyStoreEntryType.PRIVATE_KEY)
+            {
+                KeyProtection kp = new KeyProtection(kse.getLockedKeyProtection(), privateKey);
+                return (PrivateKey) kse.getKey(kp);
+            }
+        }
+        catch (KeyStoreDAOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException | InvalidAlgorithmParameterException e)
+        {
             LOG.debug(e, e);
             LOG.error(e);
-		}
+        }
         
         return null;
     }

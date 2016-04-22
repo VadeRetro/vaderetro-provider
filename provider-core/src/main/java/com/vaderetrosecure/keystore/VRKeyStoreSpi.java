@@ -208,7 +208,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
 
             return extractCertificateFromEntry(kse);
         }
-        catch (CertificateException | KeyStoreDAOException | IOException e)
+        catch (KeyStoreDAOException | IOException e)
         {
             LOG.debug(e, e);
             LOG.error(e);
@@ -456,17 +456,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
             for (String alias : aliases)
             {
                 KeyStoreEntry kse = keystoreDAO.getEntry(alias);
-                Certificate c = null;
-                try
-                {
-                    c = extractCertificateFromEntry(kse);
-                }
-                catch (CertificateException e)
-                {
-                    LOG.warn(e);
-                    LOG.debug(e, e);
-                }
-
+                Certificate c = extractCertificateFromEntry(kse);
                 if ((c != null) && cert.equals(c))
                     return alias;
             }
@@ -480,21 +470,29 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         return null;
     }
 
-    private Certificate extractCertificateFromEntry(KeyStoreEntry keyStoreEntry) throws CertificateException
+    private Certificate extractCertificateFromEntry(KeyStoreEntry keyStoreEntry)
     {
         Certificate c = null;
-        switch (keyStoreEntry.getEntryType())
+        try
         {
-        case PRIVATE_KEY:
-            List<CertificateData> certChain = keyStoreEntry.getCertificateChain();
-            if (!certChain.isEmpty())
-                c = certChain.get(0).getCertificate();
-            break;
-        case TRUSTED_CERTIFICATE:
-            c = keyStoreEntry.getTrustedCertificate();
-            break;
-        default:
-            break;
+            switch (keyStoreEntry.getEntryType())
+            {
+            case PRIVATE_KEY:
+                List<CertificateData> certChain = keyStoreEntry.getCertificateChain();
+                if (!certChain.isEmpty())
+                    c = certChain.get(0).getCertificate();
+                break;
+            case TRUSTED_CERTIFICATE:
+                c = keyStoreEntry.getTrustedCertificate();
+                break;
+            default:
+                break;
+            }
+        }
+        catch (CertificateException e)
+        {
+            LOG.warn(e);
+            LOG.debug(e, e);
         }
 
         return c;
