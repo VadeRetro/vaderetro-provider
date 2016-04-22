@@ -98,9 +98,6 @@ public class VRKeyManagerFactorySpi extends KeyManagerFactorySpi
         {
             KeyStoreDAO ksdao = KeyStoreDAOFactory.getInstance().getKeyStoreDAO();
             
-//            if (publicKey == null)
-//                publicKey = loadPublicKeyProtection();
-            
             IntegrityData integrityData = ksdao.getIntegrityData();
             if (password != null)
                 integrityData.checkIntegrity(password);
