@@ -308,24 +308,24 @@ class SqlKeyStoreDAO implements KeyStoreDAO
             ps.setString(1, aliasHash);
             try (ResultSet rs = ps.executeQuery())
             {
-                if (rs.next())
-                {
-                    LockedKeyProtection lkp = null;
-                    String protectKey = rs.getString("protection_key");
-                    String protectParam = rs.getString("protection_param");
-                    if ((protectKey != null) && (protectParam != null))
-                        lkp = new LockedKeyProtection(EncodingTools.b64Decode(protectKey), EncodingTools.b64Decode(protectParam));
-                    kse = new KeyStoreEntry(
-                            rs.getString("alias"), 
-                            Date.from(Instant.ofEpochMilli(rs.getLong("creation_date"))), 
-                            KeyStoreEntryType.values()[rs.getInt("entry_type")],
-                            rs.getString("algorithm"),
-                            EncodingTools.b64Decode(rs.getString("data")),
-                            lkp,
-                            Collections.emptyList(),
-                            Collections.emptyList()
-                            );
-                }
+                if (!rs.next())
+                    return null;
+
+                LockedKeyProtection lkp = null;
+                String protectKey = rs.getString("protection_key");
+                String protectParam = rs.getString("protection_param");
+                if ((protectKey != null) && (protectParam != null))
+                    lkp = new LockedKeyProtection(EncodingTools.b64Decode(protectKey), EncodingTools.b64Decode(protectParam));
+                kse = new KeyStoreEntry(
+                        rs.getString("alias"), 
+                        Date.from(Instant.ofEpochMilli(rs.getLong("creation_date"))), 
+                        KeyStoreEntryType.values()[rs.getInt("entry_type")],
+                        rs.getString("algorithm"),
+                        EncodingTools.b64Decode(rs.getString("data")),
+                        lkp,
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                        );
             }
         }
         
