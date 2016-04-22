@@ -27,7 +27,7 @@
 	<parent>
 		<groupId>com.vaderetrosecure</groupId>
 		<artifactId>vaderetro-provider</artifactId>
-		<version>0.5.3-SNAPSHOT</version>
+		<version>0.5.4-SNAPSHOT</version>
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

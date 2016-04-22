@@ -39,6 +39,11 @@ import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
 class SqlKeyStoreDAO implements KeyStoreDAO
 {
     private static final Logger LOG = Logger.getLogger(SqlKeyStoreDAO.class);
+    
+    private static final String SQL_DELETE_FROM = "delete from ";
+    private static final String SQL_INSERT_INTO = "insert into ";
+    private static final String SQL_SELECT_FROM = "select * from ";
+    private static final String SQL_WHERE_ALIAS_HASH = " where alias_hash=?";
 
     private DataSource dataSource;
 
@@ -461,9 +466,4 @@ class SqlKeyStoreDAO implements KeyStoreDAO
             ps.executeUpdate();
         }
     }
-    
-    private static final String SQL_DELETE_FROM = "delete from ";
-    private static final String SQL_INSERT_INTO = "insert into ";
-    private static final String SQL_SELECT_FROM = "select * from ";
-    private static final String SQL_WHERE_ALIAS_HASH = " where alias_hash=?";
 }
