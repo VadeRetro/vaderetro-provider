@@ -3,7 +3,6 @@
  */
 package com.vaderetrosecure.keystore.dao;
 
-import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -120,7 +119,7 @@ public class KeyStoreEntry
      */
     public KeyStoreEntry(String alias, Date creationDate, Key key, KeyProtection keyProtection, List<CertificateData> certificateChain, List<String> names) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
     {
-        this(alias, creationDate, (PrivateKey.class.isInstance(key)) ? KeyStoreEntryType.PRIVATE_KEY : KeyStoreEntryType.SECRET_KEY, key, keyProtection, certificateChain, Collections.emptyList());
+        this(alias, creationDate, PrivateKey.class.isInstance(key) ? KeyStoreEntryType.PRIVATE_KEY : KeyStoreEntryType.SECRET_KEY, key, keyProtection, certificateChain, names);
     }
 
     protected KeyStoreEntry(String alias, Date creationDate, KeyStoreEntryType entryType, Key key, KeyProtection keyProtection, List<CertificateData> certificateChain, List<String> names) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
@@ -374,10 +373,9 @@ public class KeyStoreEntry
      * Return the entry as a trusted certificate.
      * 
      * @return the certificate.
-     * @throws IOException if entry data can not be processed.
      * @throws CertificateException if entry data are not representing a certificate.
      */
-    public Certificate getTrustedCertificate() throws IOException, CertificateException
+    public Certificate getTrustedCertificate() throws CertificateException
     {
         return CryptoTools.decodeCertificate(getEntryData());
     }

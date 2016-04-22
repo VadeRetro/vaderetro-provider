@@ -31,12 +31,16 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author ahonore
  *
  */
 final class CryptoTools
 {
+    private static final Logger LOG = Logger.getLogger(CryptoTools.class);
+
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Lock LOCK = new ReentrantLock();
     
@@ -120,18 +124,18 @@ final class CryptoTools
         return cipher.doFinal(cipheredData);
     }
     
-    public static Certificate decodeCertificate(byte[] encodedCertificate) throws IOException, CertificateException
+    public static Certificate decodeCertificate(byte[] encodedCertificate) throws CertificateException
     {
         try (InputStream is = new ByteArrayInputStream(encodedCertificate))
         {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             return cf.generateCertificate(is);
         }
-//        catch (IOException | CertificateException e)
-//        {
-//            LOG.debug(e, e);
-//            LOG.error(e);
-//            throw e;
-//        }
+        catch (IOException e)
+        {
+            LOG.warn(e);
+            LOG.debug(e, e);
+            throw new CertificateException(e);
+        }
     }
 }

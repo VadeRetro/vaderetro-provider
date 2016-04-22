@@ -3,7 +3,6 @@
  */
 package com.vaderetrosecure.ssl;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -16,6 +15,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -29,8 +29,8 @@ import org.apache.log4j.Logger;
 
 import com.vaderetrosecure.keystore.dao.CertificateData;
 import com.vaderetrosecure.keystore.dao.KeyProtection;
-import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 
@@ -70,7 +70,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         if (aliases == null)
             return null;
         
-        return getSelectedSNIAlias(keyType, issuers, engine.getSSLParameters().getSNIMatchers());
+        return getSelectedSNIAlias(keyType, engine.getSSLParameters().getSNIMatchers());
     }
 
     @Override
@@ -86,7 +86,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         if (aliases == null)
             return null;
         
-        return getSelectedSNIAlias(keyType, issuers, ((SSLSocket) socket).getSSLParameters().getSNIMatchers());
+        return getSelectedSNIAlias(keyType, ((SSLSocket) socket).getSSLParameters().getSNIMatchers());
     }
 
     @Override
@@ -104,7 +104,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
 	            return certs.toArray(new X509Certificate[] {});
 	        }
 		}
-		catch (KeyStoreDAOException | CertificateException | IOException e)
+		catch (KeyStoreDAOException | CertificateException e)
 		{
             LOG.debug(e, e);
             LOG.error(e);
@@ -160,17 +160,21 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
         return null;
     }
 
-    private String getSelectedSNIAlias(String keyType, Principal[] issuers, Collection<SNIMatcher> sniMatchers)
+    private String getSelectedSNIAlias(String keyType, Collection<SNIMatcher> sniMatchers)
     {
-        for (SNIMatcher m : sniMatchers)
+        Collection<VRSNIMatcher> vrSniMatchers = sniMatchers.stream()
+                .filter(m -> VRSNIMatcher.class.isInstance(m))
+                .map(m -> (VRSNIMatcher) m)
+                .collect(Collectors.toList());
+        
+        for (VRSNIMatcher m : vrSniMatchers)
         {
-            if (VRSNIMatcher.class.isInstance(m))
-                for (KeyStoreEntry kse : ((VRSNIMatcher) m).getSelectedEntries())
-                {
-                    String algo = kse.getAlgorithm();
-                    if ((algo != null) && algo.equalsIgnoreCase(keyType))
-                        return kse.getAlias();
-                }
+            for (KeyStoreEntry kse : m.getSelectedEntries())
+            {
+                String algo = kse.getAlgorithm();
+                if ((algo != null) && algo.equalsIgnoreCase(keyType))
+                    return kse.getAlias();
+            }
         }
         
         return null;

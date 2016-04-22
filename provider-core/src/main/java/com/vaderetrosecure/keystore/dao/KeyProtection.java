@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
  */
 public class KeyProtection
 {
-    private final static Logger LOG = Logger.getLogger(KeyProtection.class);
+    private static final Logger LOG = Logger.getLogger(KeyProtection.class);
 
     private SecretKey key;
     private byte[] iv;

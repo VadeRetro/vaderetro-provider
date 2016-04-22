@@ -100,15 +100,15 @@ class StructureManager
 
         try (Connection conn = dataSource.getConnection())
         {
-        	if (getVersion(conn, ENTRIES_TABLE) != ENTRIES_VERSION)
-        	{
-	            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-	            {
-	                ps.execute();
-	            }
-	            
-	            insertVersion(conn, new Version(ENTRIES_TABLE, ENTRIES_VERSION));
-        	}
+            if (getVersion(conn, ENTRIES_TABLE) != ENTRIES_VERSION)
+            {
+                try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+                {
+                    ps.execute();
+                }
+                
+                insertVersion(conn, new Version(ENTRIES_TABLE, ENTRIES_VERSION));
+            }
         }
         catch (SQLException e)
         {
@@ -137,15 +137,15 @@ class StructureManager
 
         try (Connection conn = dataSource.getConnection())
         {
-        	if (getVersion(conn, CERTIFICATE_CHAINS_TABLE) != CERTIFICATE_CHAINS_VERSION)
-        	{
-	            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-	            {
-	                ps.execute();
-	            }
-	            
-	            insertVersion(conn, new Version(CERTIFICATE_CHAINS_TABLE, CERTIFICATE_CHAINS_VERSION));
-        	}
+            if (getVersion(conn, CERTIFICATE_CHAINS_TABLE) != CERTIFICATE_CHAINS_VERSION)
+            {
+                try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+                {
+                    ps.execute();
+                }
+                
+                insertVersion(conn, new Version(CERTIFICATE_CHAINS_TABLE, CERTIFICATE_CHAINS_VERSION));
+            }
         }
         catch (SQLException e)
         {
@@ -175,15 +175,15 @@ class StructureManager
 
         try (Connection conn = dataSource.getConnection())
         {
-        	if (getVersion(conn, NAMES_TABLE) != NAMES_VERSION)
-        	{
-	            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-	            {
-	                ps.execute();
-	            }
-	            
-	            insertVersion(conn, new Version(NAMES_TABLE, NAMES_VERSION));
-        	}
+            if (getVersion(conn, NAMES_TABLE) != NAMES_VERSION)
+            {
+                try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+                {
+                    ps.execute();
+                }
+                
+                insertVersion(conn, new Version(NAMES_TABLE, NAMES_VERSION));
+            }
         }
         catch (SQLException e)
         {
@@ -214,15 +214,15 @@ class StructureManager
 
         try (Connection conn = dataSource.getConnection())
         {
-        	if (getVersion(conn, INTEGRITY_TABLE) != INTEGRITY_VERSION)
-        	{
-	            try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
-	            {
-	                ps.execute();
-	            }
-	            
-	            insertVersion(conn, new Version(INTEGRITY_TABLE, INTEGRITY_VERSION));
-        	}
+            if (getVersion(conn, INTEGRITY_TABLE) != INTEGRITY_VERSION)
+            {
+                try (PreparedStatement ps = conn.prepareStatement(sb.toString()))
+                {
+                    ps.execute();
+                }
+                
+                insertVersion(conn, new Version(INTEGRITY_TABLE, INTEGRITY_VERSION));
+            }
         }
         catch (SQLException e)
         {
@@ -253,18 +253,18 @@ class StructureManager
     
     private int getVersion(Connection conn, String tableName) throws SQLException
     {
-    	int version = 0;
-    	try (PreparedStatement ps = conn.prepareStatement("select * from " + VERSIONS_TABLE + " where table_name=?"))
-    	{
-    		ps.setString(1, tableName);
-    		try (ResultSet rs = ps.executeQuery())
-    		{
-    			if (rs.next())
-    				version = rs.getInt("version");
-    		}
-    	}
-    	
-    	return version;
+        int version = 0;
+        try (PreparedStatement ps = conn.prepareStatement("select * from " + VERSIONS_TABLE + " where table_name=?"))
+        {
+            ps.setString(1, tableName);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                if (rs.next())
+                    version = rs.getInt("version");
+            }
+        }
+        
+        return version;
     }
     
     private void insertVersion(Connection conn, Version version) throws SQLException
