@@ -3,7 +3,6 @@
  */
 package com.vaderetrosecure.ssl;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -29,8 +28,8 @@ import org.apache.log4j.Logger;
 
 import com.vaderetrosecure.keystore.dao.CertificateData;
 import com.vaderetrosecure.keystore.dao.KeyProtection;
-import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
+import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 
@@ -104,7 +103,7 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
 	            return certs.toArray(new X509Certificate[] {});
 	        }
 		}
-		catch (KeyStoreDAOException | CertificateException | IOException e)
+		catch (KeyStoreDAOException | CertificateException e)
 		{
             LOG.debug(e, e);
             LOG.error(e);
