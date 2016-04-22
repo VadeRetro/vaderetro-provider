@@ -139,7 +139,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     @Override
     public IntegrityData getIntegrityData() throws KeyStoreDAOException
     {
-        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.INTEGRITY_TABLE + " where id=?"); )
+        try (Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement(SQL_SELECT_FROM + StructureManager.INTEGRITY_TABLE + " where id=?"); )
         {
             ps.setLong(1,  1L);
             try (ResultSet rs = ps.executeQuery())
@@ -173,13 +173,13 @@ class SqlKeyStoreDAO implements KeyStoreDAO
             boolean autoCom = conn.getAutoCommit();
             conn.setAutoCommit(false);
 
-            try (PreparedStatement ps = conn.prepareStatement("delete from " + StructureManager.INTEGRITY_TABLE + " where id=?"))
+            try (PreparedStatement ps = conn.prepareStatement(SQL_DELETE_FROM + StructureManager.INTEGRITY_TABLE + " where id=?"))
             {
                 ps.setLong(1, 1L);
                 ps.executeUpdate();
             }
             
-            try (PreparedStatement ps = conn.prepareStatement("insert into " + StructureManager.INTEGRITY_TABLE + " (id,salt,iv,data,data_hash) value(?,?,?,?,?)"))
+            try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_INTO + StructureManager.INTEGRITY_TABLE + " (id,salt,iv,data,data_hash) value(?,?,?,?,?)"))
             {
                 ps.setLong(1, 1L);
                 ps.setString(2, EncodingTools.b64Encode(integrityData.getSalt()));
@@ -303,7 +303,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     private KeyStoreEntry getKeyStoreEntryObject(Connection conn, String aliasHash) throws SQLException
     {
         KeyStoreEntry kse = null;
-        try (PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.ENTRIES_TABLE + " where alias_hash=?"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_SELECT_FROM + StructureManager.ENTRIES_TABLE + " where alias_hash=?"))
         {
             ps.setString(1, aliasHash);
             try (ResultSet rs = ps.executeQuery())
@@ -335,7 +335,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     private List<CertificateData> getCertificateChainObjectList(Connection conn, String aliasHash) throws SQLException
     {
         List<CertificateData> certChain = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.CERTIFICATE_CHAINS_TABLE + " where alias_hash=? order by rank"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_SELECT_FROM + StructureManager.CERTIFICATE_CHAINS_TABLE + " where alias_hash=? order by rank"))
         {
             ps.setString(1, aliasHash);
             try (ResultSet rs = ps.executeQuery())
@@ -353,7 +353,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     private List<String> getNameObjectList(Connection conn, String aliasHash) throws SQLException
     {
         List<String> names = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.NAMES_TABLE + " where alias_hash=?"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_SELECT_FROM + StructureManager.NAMES_TABLE + " where alias_hash=?"))
         {
             ps.setString(1, aliasHash);
             try (ResultSet rs = ps.executeQuery())
@@ -371,7 +371,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     private Set<String> getAliasHashesFromNameHash(Connection conn, String nameHash) throws SQLException
     {
         Set<String> aliasHashes = new HashSet<>();
-        try (PreparedStatement ps = conn.prepareStatement("select * from " + StructureManager.NAMES_TABLE + " where name_hash=?"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_SELECT_FROM + StructureManager.NAMES_TABLE + " where name_hash=?"))
         {
             ps.setString(1, nameHash);
             try (ResultSet rs = ps.executeQuery())
@@ -388,7 +388,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
 
     private void setKeyStoreEntryObject(Connection conn, String aliasHash, KeyStoreEntry kse) throws SQLException
     {
-        try (PreparedStatement ps = conn.prepareStatement("insert into " + StructureManager.ENTRIES_TABLE + " (alias_hash,entry_type,alias,creation_date,algorithm,data,protection_key,protection_param) value(?,?,?,?,?,?,?,?)"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_INTO + StructureManager.ENTRIES_TABLE + " (alias_hash,entry_type,alias,creation_date,algorithm,data,protection_key,protection_param) value(?,?,?,?,?,?,?,?)"))
         {
             ps.setString(1, aliasHash);
             ps.setInt(2, kse.getEntryType().ordinal());
@@ -405,7 +405,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
 
     private void setCertificateChainObjectList(Connection conn, String aliasHash, List<CertificateData> certificateChain) throws SQLException
     {
-        try (PreparedStatement ps = conn.prepareStatement("insert into " + StructureManager.CERTIFICATE_CHAINS_TABLE + " (alias_hash,rank,data) value(?,?,?)"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_INTO + StructureManager.CERTIFICATE_CHAINS_TABLE + " (alias_hash,rank,data) value(?,?,?)"))
         {
             int ct = 0;
             for (CertificateData cd : certificateChain)
@@ -422,7 +422,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
 
     private void setNameObjectList(Connection conn, String aliasHash, List<String> names) throws SQLException
     {
-        try (PreparedStatement ps = conn.prepareStatement("insert into " + StructureManager.NAMES_TABLE + " (alias_hash,name_hash,name) value(?,?,?)"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_INTO + StructureManager.NAMES_TABLE + " (alias_hash,name_hash,name) value(?,?,?)"))
         {
             for (String name : names)
             {
@@ -437,7 +437,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
 
     private void deleteKeyStoreEntryObject(Connection conn, String aliasHash) throws SQLException
     {
-        try (PreparedStatement ps = conn.prepareStatement("delete from " + StructureManager.ENTRIES_TABLE + " where alias_hash=?"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_DELETE_FROM + StructureManager.ENTRIES_TABLE + " where alias_hash=?"))
         {
             ps.setString(1, aliasHash);
             ps.executeUpdate();
@@ -446,7 +446,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
 
     private void deleteCertificateChainObjectList(Connection conn, String aliasHash) throws SQLException
     {
-        try (PreparedStatement ps = conn.prepareStatement("delete from " + StructureManager.CERTIFICATE_CHAINS_TABLE + " where alias_hash=?"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_DELETE_FROM + StructureManager.CERTIFICATE_CHAINS_TABLE + " where alias_hash=?"))
         {
             ps.setString(1, aliasHash);
             ps.executeUpdate();
@@ -455,10 +455,14 @@ class SqlKeyStoreDAO implements KeyStoreDAO
 
     private void deleteNameObjectList(Connection conn, String aliasHash) throws SQLException
     {
-        try (PreparedStatement ps = conn.prepareStatement("delete from " + StructureManager.NAMES_TABLE + " where alias_hash=?"))
+        try (PreparedStatement ps = conn.prepareStatement(SQL_DELETE_FROM + StructureManager.NAMES_TABLE + " where alias_hash=?"))
         {
             ps.setString(1, aliasHash);
             ps.executeUpdate();
         }
     }
+    
+    private static final String SQL_DELETE_FROM = "delete from ";
+    private static final String SQL_INSERT_INTO = "insert into ";
+    private static final String SQL_SELECT_FROM = "select * from ";
 }
