@@ -31,12 +31,16 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author ahonore
  *
  */
 final class CryptoTools
 {
+    private static final Logger LOG = Logger.getLogger(CryptoTools.class);
+
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Lock LOCK = new ReentrantLock();
     
@@ -129,6 +133,8 @@ final class CryptoTools
         }
         catch (IOException e)
         {
+            LOG.warn(e);
+            LOG.debug(e, e);
             throw new CertificateException(e);
         }
     }
