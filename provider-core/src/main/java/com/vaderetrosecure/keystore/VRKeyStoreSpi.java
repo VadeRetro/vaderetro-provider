@@ -206,22 +206,7 @@ public class VRKeyStoreSpi extends KeyStoreSpi
             if (kse == null)
                 return null;
 
-            Certificate c = null;
-            switch (kse.getEntryType())
-            {
-            case PRIVATE_KEY:
-                List<CertificateData> certChain = kse.getCertificateChain();
-                if (!certChain.isEmpty())
-                    c = certChain.get(0).getCertificate();
-                break;
-            case TRUSTED_CERTIFICATE:
-                c = kse.getTrustedCertificate();
-                break;
-            default:
-                break;
-            }
-
-            return c;
+            return extractCertificateFromEntry(kse);
         }
         catch (CertificateException | KeyStoreDAOException | IOException e)
         {
@@ -501,20 +486,21 @@ public class VRKeyStoreSpi extends KeyStoreSpi
         switch (keyStoreEntry.getEntryType())
         {
         case PRIVATE_KEY:
-            List<CertificateData> ce = keyStoreEntry.getCertificateChain();
-            if (!ce.isEmpty())
-                c = ce.get(0).getCertificate();
+            List<CertificateData> certChain = keyStoreEntry.getCertificateChain();
+            if (!certChain.isEmpty())
+                c = certChain.get(0).getCertificate();
             break;
         case TRUSTED_CERTIFICATE:
             c = keyStoreEntry.getTrustedCertificate();
             break;
         default:
-            c = null;
             break;
         }
 
         return c;
     }
+    
+    
     
     /**
      * {@inheritDoc}
