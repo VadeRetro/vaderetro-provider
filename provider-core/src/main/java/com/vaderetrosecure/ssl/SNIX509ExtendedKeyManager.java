@@ -40,7 +40,7 @@ import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
  */
 public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
 {
-    private final static Logger LOG = Logger.getLogger(SNIX509ExtendedKeyManager.class);
+    private static final Logger LOG = Logger.getLogger(SNIX509ExtendedKeyManager.class);
 
     private KeyStoreDAO keyStoreDAO;
     private PrivateKey privateKey;
