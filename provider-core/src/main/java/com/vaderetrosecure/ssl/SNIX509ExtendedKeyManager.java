@@ -15,6 +15,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -161,15 +162,19 @@ public class SNIX509ExtendedKeyManager extends X509ExtendedKeyManager
 
     private String getSelectedSNIAlias(String keyType, Collection<SNIMatcher> sniMatchers)
     {
-        for (SNIMatcher m : sniMatchers)
+        Collection<VRSNIMatcher> vrSniMatchers = sniMatchers.stream()
+                .filter(m -> VRSNIMatcher.class.isInstance(m))
+                .map(m -> (VRSNIMatcher) m)
+                .collect(Collectors.toList());
+        
+        for (VRSNIMatcher m : vrSniMatchers)
         {
-            if (VRSNIMatcher.class.isInstance(m))
-                for (KeyStoreEntry kse : ((VRSNIMatcher) m).getSelectedEntries())
-                {
-                    String algo = kse.getAlgorithm();
-                    if ((algo != null) && algo.equalsIgnoreCase(keyType))
-                        return kse.getAlias();
-                }
+            for (KeyStoreEntry kse : m.getSelectedEntries())
+            {
+                String algo = kse.getAlgorithm();
+                if ((algo != null) && algo.equalsIgnoreCase(keyType))
+                    return kse.getAlias();
+            }
         }
         
         return null;
