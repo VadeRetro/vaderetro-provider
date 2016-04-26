@@ -24,6 +24,7 @@ import javax.sql.DataSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.vaderetrosecure.keystore.dao.IntegrityData;
@@ -37,6 +38,7 @@ import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
  * @author ahonore
  *
  */
+@Ignore
 public class SqlKeyStoreDAOTest
 {
     private static final String MASTER_PASSWORD = "master-password";
