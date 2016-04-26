@@ -52,6 +52,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
      * A {@code DataSource} object is given to manage SQL connections.
      * 
      * @param dataSource the DataSource object.
+     * @param structureManager an object that manages the underlying structure.
      */
     SqlKeyStoreDAO(DataSource dataSource, StructureManager structureManager)
     {
