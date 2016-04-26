@@ -109,10 +109,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<distributionManagement>
-		<repository>
-			<id>nexus.vade-retro.com</id>
-			<url>http://192.168.15.99:8082/nexus/content/repositories/snapshots</url>
-		</repository>
-	</distributionManagement>
 </project>
