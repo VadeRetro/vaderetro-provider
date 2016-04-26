@@ -32,7 +32,6 @@ import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
  * Please, refer to the associated factory and the package documentation to know 
  * how to use it properly.
  * 
- * @author ahonore
  * @see SqlKeyStoreDAOFactory
  * @see com.vaderetrosecure.keystore.dao.sql
  */
@@ -46,6 +45,7 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     private static final String SQL_WHERE_ALIAS_HASH = " where alias_hash=?";
 
     private DataSource dataSource;
+    private StructureManager structureManager;
 
     /**
      * Construct a new {@code SqlKeyStoreDAO} object.
@@ -53,9 +53,10 @@ class SqlKeyStoreDAO implements KeyStoreDAO
      * 
      * @param dataSource the DataSource object.
      */
-    SqlKeyStoreDAO(DataSource dataSource)
+    SqlKeyStoreDAO(DataSource dataSource, StructureManager structureManager)
     {
         this.dataSource = dataSource;
+        this.structureManager = structureManager;
     }
 
     /**
@@ -72,13 +73,12 @@ class SqlKeyStoreDAO implements KeyStoreDAO
     @Override
     public void checkDAOStructure() throws KeyStoreDAOException
     {
-        StructureManager sm = new StructureManager(dataSource);
-        if (!sm.versionsTableExists())
-            sm.createVersionsTable();
-        sm.manageIntegrityTable();
-        sm.manageEntriesTable();
-        sm.manageCertificateChainsTable();
-        sm.manageNamesTable();
+        if (!structureManager.versionsTableExists())
+            structureManager.createVersionsTable();
+        structureManager.manageIntegrityTable();
+        structureManager.manageEntriesTable();
+        structureManager.manageCertificateChainsTable();
+        structureManager.manageNamesTable();
     }
 
     @Override

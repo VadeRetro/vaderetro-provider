@@ -9,8 +9,6 @@ package com.vaderetrosecure.keystore.dao;
  * sub class of it must be thrown.<br>
  * In case of an exception is thrown be the underlying implementation, 
  * it can be the cause of this exception.
- * 
- * @author ahonore
  */
 public class KeyStoreDAOException extends Exception
 {

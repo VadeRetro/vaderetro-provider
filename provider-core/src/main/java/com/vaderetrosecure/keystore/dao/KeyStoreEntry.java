@@ -34,7 +34,6 @@ import javax.crypto.spec.SecretKeySpec;
  * </ul>
  * Here, certificate names are used by the SSL context to perform SNI matching.
  * 
- * @author ahonore
  * @see com.vaderetrosecure.keystore.dao.KeyStoreDAO
  */
 public class KeyStoreEntry

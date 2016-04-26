@@ -21,7 +21,5 @@
  * The goal is to separate key store manipulation and SSL context use. In the app using the key store, a database user 
  * will have high access rights to modify the key store. In the app using SSL context, a user only needs to read the 
  * key store. So the associated database user will only have read access rights to tables. 
- * 
- * @author ahonore
  */
 package com.vaderetrosecure.keystore.dao.sql;

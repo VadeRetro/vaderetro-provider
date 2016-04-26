@@ -27,7 +27,6 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
 
 /**
- * @author ahonore
  *
  */
 public class VadeRetroProviderTest

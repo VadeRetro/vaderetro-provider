@@ -21,7 +21,6 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 
 /**
- * @author ahonore
  *
  */
 class VRSNIMatcher extends SNIMatcher

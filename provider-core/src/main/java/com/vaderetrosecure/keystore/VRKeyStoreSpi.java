@@ -67,7 +67,6 @@ import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
  * {@code com.vaderetrosecure.key.public}, containing a public key in the X509 DER format. The public 
  * key must be at least 2048-bit long.
  * 
- * @author ahonore
  * @see com.vaderetrosecure.keystore.dao.KeyStoreDAO
  */
 public class VRKeyStoreSpi extends KeyStoreSpi

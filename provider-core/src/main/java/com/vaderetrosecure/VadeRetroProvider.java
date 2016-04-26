@@ -27,8 +27,6 @@ import com.vaderetrosecure.ssl.TLSSSLContextSpi;
  * <code>
  * security.provider.&lt;n&gt;=com.vaderetrosecure.VadeRetroProvider</code></pre>
  * where {@code <n>} is the preference you want the provider at (1 being the most preferred).
- *  
- * @author ahonore
  */
 public class VadeRetroProvider extends Provider
 {

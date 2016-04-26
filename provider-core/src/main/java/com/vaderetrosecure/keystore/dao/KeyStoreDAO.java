@@ -16,7 +16,6 @@ import java.util.List;
  * This class controls the storage of key store entries. Each {@code VRKeyStoreSpi}, {@code SNIX509ExtendedKeyManager} or 
  * {@code TLSSSLContextSpi} object uses instances of this class as its underlying layer for storage accesses.
  * 
- * @author ahonore
  * @see com.vaderetrosecure.keystore.VRKeyStoreSpi
  * @see com.vaderetrosecure.ssl.SNIX509ExtendedKeyManager
  * @see com.vaderetrosecure.ssl.TLSSSLContextSpi
