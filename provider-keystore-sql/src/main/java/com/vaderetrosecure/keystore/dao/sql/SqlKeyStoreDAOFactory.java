@@ -70,7 +70,7 @@ public class SqlKeyStoreDAOFactory extends KeyStoreDAOFactory
         {
             Properties prop = loadProperties();
             DataSource dataSource = createDataSource(prop);
-            keyStoreDAO = new SqlKeyStoreDAO(dataSource);
+            keyStoreDAO = new SqlKeyStoreDAO(dataSource, new StructureManager(dataSource));
         }
         catch (ClassNotFoundException e)
         {
