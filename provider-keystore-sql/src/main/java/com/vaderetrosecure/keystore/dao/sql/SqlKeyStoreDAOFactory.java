@@ -46,7 +46,6 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory;
  * create connection pools and {@code DataSource} objects. So, all configuration parameters defined 
  * <a href="https://commons.apache.org/proper/commons-dbcp/configuration.html">here</a> can be used in this factory.
  * 
- * @author ahonore
  * @see com.vaderetrosecure.keystore.dao.KeyStoreDAOFactory
  * @see com.vaderetrosecure.keystore.dao.sql.SqlKeyStoreDAO
  */

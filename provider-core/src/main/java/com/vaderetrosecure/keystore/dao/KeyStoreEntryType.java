@@ -5,8 +5,6 @@ package com.vaderetrosecure.keystore.dao;
 
 /**
  * The type of {@link com.vaderetrosecure.keystore.dao.KeyStoreEntry} object that is actually stored.
- * 
- * @author ahonore
  */
 public enum KeyStoreEntryType
 {

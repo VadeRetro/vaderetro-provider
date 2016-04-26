@@ -32,7 +32,6 @@ import com.vaderetrosecure.keystore.dao.LockedKeyProtection;
  * Please, refer to the associated factory and the package documentation to know 
  * how to use it properly.
  * 
- * @author ahonore
  * @see SqlKeyStoreDAOFactory
  * @see com.vaderetrosecure.keystore.dao.sql
  */

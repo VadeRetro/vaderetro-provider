@@ -45,7 +45,6 @@ import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 
 
 /**
- * @author ahonore
  *
  */
 public class SqlKeyStoreDAOTest

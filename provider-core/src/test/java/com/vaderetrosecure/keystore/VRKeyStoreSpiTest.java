@@ -54,7 +54,6 @@ import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntryType;
 
 /**
- * @author ahonore
  *
  */
 public class VRKeyStoreSpiTest

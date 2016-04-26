@@ -18,8 +18,6 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAOException;
 /**
  * This class manages the structure of the store.
  * It is an helper for creating or updating tables if needed.
- * 
- * @author ahonore
  */
 class StructureManager
 {

@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
  * This class provides helper methods to encode/decode data to or from the store.
  * It is useful for storing arrays of bytes from {@code KeyStoreEntry} objects as strings in the database. 
  * 
- * @author ahonore
  * @see com.vaderetrosecure.keystore.dao.KeyStoreEntry
  */
 final class EncodingTools
