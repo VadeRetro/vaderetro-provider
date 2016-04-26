@@ -34,7 +34,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.log4j.Logger;
 
 /**
- * @author ahonore
  *
  */
 final class CryptoTools

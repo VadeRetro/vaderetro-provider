@@ -31,9 +31,6 @@ import org.apache.log4j.Logger;
  * The salt is used by all key protection objects to generate keys. Constructors are given to 
  * easily generate new integrity data.<br>
  * Each field is an array of bytes to be easily stored.
- * 
- * @author ahonore
- *
  */
 public class IntegrityData
 {

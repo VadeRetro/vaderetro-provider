@@ -44,7 +44,6 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
  * they are deciphered with a private key. Just add the file {@code com.vaderetrosecure.key.private}, containing 
  * a private key in the PKCS8 DER format. The private key must be at least 2048-bit long.
  * 
- * @author ahonore
  * @see com.vaderetrosecure.keystore.dao.KeyStoreDAO
  * @see com.vaderetrosecure.keystore.VRKeyStoreSpi
  */

@@ -17,8 +17,6 @@ import org.apache.log4j.Logger;
  * <pre>
  * {@code java -Dcom.vaderetrosecure.keystore.dao.factory=com.company.MyDAOFactory ...}</pre>
  * if the implementor's factory is {@code com.company.MyDAOFactory}.
- * 
- * @author ahonore
  */
 public abstract class KeyStoreDAOFactory
 {

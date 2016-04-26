@@ -11,7 +11,6 @@ package com.vaderetrosecure.keystore.dao;
  * {@link com.vaderetrosecure.keystore.VRKeyStoreSpi}. Only this class will be used 
  * for storage by the {@link com.vaderetrosecure.keystore.dao.KeyStoreDAO} class.
  * 
- * @author ahonore
  * @see com.vaderetrosecure.keystore.VRKeyStoreSpi
  * @see com.vaderetrosecure.keystore.dao.KeyProtection
  * @see com.vaderetrosecure.keystore.dao.KeyStoreDAO

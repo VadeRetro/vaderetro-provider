@@ -37,7 +37,6 @@ import com.vaderetrosecure.keystore.dao.KeyStoreDAO;
 import com.vaderetrosecure.keystore.dao.KeyStoreEntry;
 
 /**
- * @author ahonore
  *
  */
 public class SNIX509ExtendedKeyManagerTest

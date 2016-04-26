@@ -24,7 +24,6 @@ import org.apache.log4j.Logger;
  * create protections but are never stored. Implementors must only store {@link LockedKeyProtection} objects that, 
  * internally, will be derived to create {@code KeyProtection} objects. 
  * 
- * @author ahonore
  * @see com.vaderetrosecure.keystore.VRKeyStoreSpi
  * @see com.vaderetrosecure.keystore.dao.LockedKeyProtection
  */

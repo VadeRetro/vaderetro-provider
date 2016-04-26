@@ -9,9 +9,6 @@ import java.security.cert.CertificateException;
 
 /**
  * Represent a Certificate as a byte array, easily readable and writable in a simple data field.
- * 
- * @author ahonore
- *
  */
 public class CertificateData
 {

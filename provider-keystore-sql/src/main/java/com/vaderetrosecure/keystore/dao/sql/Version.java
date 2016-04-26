@@ -7,7 +7,6 @@ package com.vaderetrosecure.keystore.dao.sql;
  * This class represents a version number associated to a table name.
  * It is used by {@code StructureManager} objects to manage table verions.
  * 
- * @author ahonore
  * @see StructureManager
  */
 class Version

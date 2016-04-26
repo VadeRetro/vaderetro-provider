@@ -36,8 +36,6 @@ import org.apache.log4j.Logger;
  * sslCtx.init(kmf.getKeyManagers(), null, null);</code></pre>
  * This context delegates most of its behavior to the default TLS context. But it adds the SNI management 
  * and the DAO access to retrieve certificates and private keys.
- * 
- * @author ahonore
  */
 public class TLSSSLContextSpi extends SSLContextSpi
 {
